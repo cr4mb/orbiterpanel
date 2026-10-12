@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
     private static final String HOME = "https://appassets.androidplatform.net/assets/index.html";
     private static final String APP_HOST = "appassets.androidplatform.net";
     private static final String DATA_HOST = "api.warframestat.us";
+    private static final String MARKET_HOST = "api.warframe.market";
 
     private WebView web;
 
@@ -58,8 +59,9 @@ public class MainActivity extends Activity {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
                 Uri u = req.getUrl();
-                if (DATA_HOST.equals(u.getHost()) && "GET".equals(req.getMethod())) {
-                    WebResourceResponse r = fetchData(u.toString());
+                String host = u.getHost();
+                if ("GET".equals(req.getMethod()) && (DATA_HOST.equals(host) || MARKET_HOST.equals(host))) {
+                    WebResourceResponse r = fetchData(u.toString(), MARKET_HOST.equals(host));
                     if (r != null) return r;
                 }
                 return loader.shouldInterceptRequest(u);
@@ -83,12 +85,18 @@ public class MainActivity extends Activity {
     }
 
     /** Runs on the WebView's background thread, so blocking network calls are fine here. */
-    private WebResourceResponse fetchData(String url) {
+    private WebResourceResponse fetchData(String url, boolean market) {
         try {
             HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
             c.setConnectTimeout(12000);
             c.setReadTimeout(15000);
             c.setRequestProperty("Accept", "application/json");
+            c.setRequestProperty("User-Agent", "OrbiterPanel/1.0 (Android companion app)");
+            if (market) {
+                c.setRequestProperty("Platform", "pc");
+                c.setRequestProperty("Language", "en");
+                c.setRequestProperty("Crossplay", "true");
+            }
             int code = c.getResponseCode();
             InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
             if (in == null) in = new ByteArrayInputStream(new byte[0]);

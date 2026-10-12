@@ -83,13 +83,16 @@ img:not(.broken) + .gem{display:none}
 
 /* ---------- shell ---------- */
 .app{position:relative;z-index:1;display:flex;height:100%;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) 0}
-.rail{flex:0 0 var(--rail);display:flex;flex-direction:column;border-right:1px solid var(--edge);background:linear-gradient(90deg,rgba(5,9,15,.92),rgba(8,13,21,.78));padding-left:env(safe-area-inset-left,0px);overflow-y:auto;scrollbar-width:none}
+.rail{position:relative;flex:0 0 var(--rail);display:flex;flex-direction:column;border-right:1px solid var(--edge);background:linear-gradient(90deg,rgba(5,9,15,.92),rgba(8,13,21,.78));padding-left:env(safe-area-inset-left,0px);overflow-y:auto;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
 .tabs{display:flex;flex-direction:column;flex:1 0 auto}
 .tab{flex:1;min-height:2.65rem;max-height:5.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;color:var(--faint);position:relative;font-family:var(--f-head);font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .tab svg{width:1.55rem;height:1.55rem}
+.tab{transition:color .25s ease, background-color .25s ease}
 .tab[aria-current="page"]{color:var(--gold);background:linear-gradient(90deg,transparent,var(--gold-wash))}
-.tab[aria-current="page"]::after{content:"";position:absolute;right:-.3rem;top:50%;width:.5rem;height:.5rem;background:var(--gold);transform:translateY(-50%) rotate(45deg);box-shadow:0 0 .6rem var(--gold)}
+.tab[aria-current="page"] svg{filter:drop-shadow(0 0 .35rem rgba(226,187,100,.55))}
+.rail-mark{position:absolute;right:-.28rem;top:0;width:.5rem;height:.5rem;background:var(--gold);box-shadow:0 0 .6rem var(--gold);transform:translateY(var(--y,0)) rotate(45deg);pointer-events:none;z-index:2}
+.rail-mark.anim{transition:transform .34s cubic-bezier(.2,.8,.2,1)}
 .rail-foot{display:flex;flex-direction:column;align-items:center;gap:.1rem;padding-block:.25rem;border-top:1px solid var(--edge)}
 .foot-row{display:flex;justify-content:center;width:100%}
 .icon-btn{width:2.1rem;height:2.3rem;display:grid;place-items:center;color:var(--muted)}
@@ -270,6 +273,51 @@ img:not(.broken) + .gem{display:none}
 .steps{margin:0;padding-left:1.2rem;font-size:.86rem;color:var(--muted);display:flex;flex-direction:column;gap:.2rem}
 .steps b{color:var(--text)}
 
+/* ---------- search ---------- */
+.sbox{display:flex;align-items:center;gap:.45rem;border:1px solid var(--edge);background:rgba(11,17,27,.85);padding:0 .25rem 0 .6rem;min-height:2.8rem;transition:border-color .2s ease, box-shadow .2s ease}
+.sbox:focus-within{border-color:var(--gold);box-shadow:0 0 .8rem rgba(226,187,100,.18)}
+.sbox > svg{width:1.2rem;height:1.2rem;color:var(--muted);flex:none}
+.sbox input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font-family:var(--f-body);font-weight:500;font-size:1.05rem;-webkit-appearance:none;appearance:none}
+.sbox input::-webkit-search-cancel-button{display:none}
+.sbox input::placeholder{color:var(--faint)}
+.sbox button{width:2.3rem;height:2.3rem;display:grid;place-items:center;color:var(--muted);flex:none}
+.sbox button svg{width:1.05rem;height:1.05rem}
+.hit{width:100%;text-align:left;font:inherit;color:inherit}
+.hit-art{width:2.7rem;height:2.15rem;object-fit:contain;flex:none;display:block}
+.hit-art.ph{display:grid;place-items:center}
+.hit-art.ph::before{content:"";width:.6rem;height:.6rem;transform:rotate(45deg);background:var(--faint)}
+.chev{color:var(--faint);font-family:var(--f-head);font-size:1.2rem}
+.tagline{font-size:.88rem;color:var(--muted);margin:0}
+.recents{display:flex;flex-wrap:wrap;gap:.4rem}
+.back{display:inline-flex;align-items:center;gap:.35rem;align-self:flex-start;min-height:2.3rem;padding-right:.5rem;font-family:var(--f-head);font-weight:700;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.back svg{width:1rem;height:1rem}
+.detail-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.75rem;align-items:center}
+.hero{width:5.4rem;height:4.3rem;object-fit:contain;filter:drop-shadow(0 0 .6rem rgba(130,228,255,.18))}
+.hero.ph{display:grid;place-items:center;border:1px solid var(--edge)}
+.summary{display:flex;gap:1.2rem;flex-wrap:wrap}
+.summary div{display:flex;flex-direction:column}
+.summary b{font-family:var(--f-num);font-weight:500;font-size:1.35rem}
+.summary b small{font-size:.75rem;color:var(--muted);margin-left:.1rem}
+.sub-h{font-family:var(--f-head);font-weight:700;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.2rem}
+.order{grid-template-columns:auto minmax(0,1fr) auto}
+.plat{font-family:var(--f-num);font-size:1.15rem;color:var(--text);min-width:3.2rem}
+.plat small{font-size:.72rem;color:var(--gold);margin-left:.1rem}
+.who{display:flex;align-items:center;gap:.35rem;min-width:0}
+.who span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.presence{width:.45rem;height:.45rem;transform:rotate(45deg);flex:none;background:var(--faint)}
+.presence.ingame{background:var(--ok);box-shadow:0 0 .4rem var(--ok)}
+.presence.online{background:var(--void)}
+.copy{min-height:2.1rem;padding:0 .55rem;border:1px solid rgba(226,187,100,.45);font-family:var(--f-head);font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.copy:active{background:var(--gold-wash)}
+.drop-group + .drop-group{border-top:1px solid var(--edge);padding-top:.35rem}
+.drop-group h3{margin:0;padding:.2rem .5rem;font-family:var(--f-head);font-size:1rem;font-weight:700;letter-spacing:.03em;display:flex;justify-content:space-between;gap:.5rem}
+.drop-group h3 span{font-family:var(--f-body);font-weight:500;font-size:.8rem;color:var(--muted)}
+.chance{font-family:var(--f-num);font-size:.98rem;text-align:right;white-space:nowrap}
+.chance small{display:block;font-family:var(--f-head);font-weight:700;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
+.rar-common{color:#d39b68}.rar-uncommon{color:#c3cbd4}.rar-rare{color:#e6cd80}.rar-legendary{color:#f4eedb}
+.more{width:100%;min-height:2.3rem;font-family:var(--f-head);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--void)}
+.toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:20;transform:translateX(-50%);background:var(--panel-hi);border:1px solid var(--gold);color:var(--text);padding:.5rem .9rem;font-family:var(--f-head);font-weight:700;letter-spacing:.06em;font-size:.9rem;pointer-events:none}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -279,6 +327,7 @@ img:not(.broken) + .gem{display:none}
 <canvas id="sky" aria-hidden="true"></canvas>
 <div class="app">
   <nav class="rail" aria-label="Sections">
+    <span class="rail-mark" id="rail-mark" aria-hidden="true"></span>
     <div class="tabs" id="tabs"></div>
     <div class="rail-foot">
       <button class="icon-btn install" id="install-btn" aria-label="Install app" hidden>
@@ -296,7 +345,18 @@ img:not(.broken) + .gem{display:none}
     </div>
   </nav>
   <main class="pane" id="pane" tabindex="-1"></main>
+  <section class="pane" id="spane" aria-label="Search" hidden>
+    <div class="toolbar">
+      <label class="sbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        <input id="q" type="search" placeholder="Items, mods, relics…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Search items">
+        <button id="q-clear" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </label>
+    </div>
+    <div class="view" id="s-body"></div>
+  </section>
 </div>
+<div class="toast" id="toast" hidden></div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-h"></div>
 
 <script>
@@ -355,7 +415,8 @@ const ICONS = {
   nightwave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9c2.2-3 4.3-3 6.5 0s4.3 3 6.5 0 3.7-2.6 5-1"/><path d="M3 15c2.2-3 4.3-3 6.5 0s4.3 3 6.5 0 3.7-2.6 5-1"/></svg>',
   vendors:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 16.5 12 12 16.5 7.5 12Z"/></svg>',
 };
-const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["nightwave","Nightwave"],["vendors","Vendors"]];
+ICONS.search = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5.5 5.5"/><path d="M10.5 7.5v6M7.5 10.5h6" stroke-width="1.2"/></svg>';
+const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["nightwave","Nightwave"],["vendors","Vendors"],["search","Search"]];
 const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 8.5 6.5 12 13 4.5"/></svg>';
 
 /* ================= storage (best effort) ================= */
@@ -412,7 +473,9 @@ const factionImg = (f, cls = "faction") => img(FACTION_ART[factionKey(f)], cls, 
 const factionVar = f => ({ grineer:"--fa-grineer", corpus:"--fa-corpus", infested:"--fa-infested" }[factionKey(f)] || "--fa-other");
 function planet(node){
   const m = /\(([^)]+)\)\s*$/.exec(node || "");
-  const raw = m ? m[1] : "";
+  return planetBall(m ? m[1] : "");
+}
+function planetBall(raw){
   const key = raw.toLowerCase().replace(/\s+proxima$/, "").trim();
   const c = PLANETS[key] || PLANETS._;
   const cls = ["pl", key === "saturn" ? "ring" : "", key === "jupiter" ? "band" : "", /proxima/i.test(raw) ? "prox" : ""].filter(Boolean).join(" ");
@@ -438,7 +501,7 @@ function needItems(){
   if (location.protocol === "file:") { itemsState = "none"; return; }
   itemsState = "loading";
   fetch("items.json").then(r => r.ok ? r.json() : null)
-    .then(j => { ITEMS = j || {}; itemsState = "ready"; render(); })
+    .then(j => { ITEMS = j || {}; itemsState = "ready"; render(); if (prefs.tab === "search") paintSearch(); })
     .catch(() => { itemsState = "none"; });
 }
 const PART = /\s+(barrel|receiver|stock|blade|blades|handle|hilt|link|grip|string|upper limb|lower limb|chassis|systems|neuroptics|harness|wings|carapace|cerebrum|guard|heatsink|gauntlet|ornament|pouch|stars|disc|boot|head|chain|band|buckle)$/;
@@ -775,6 +838,7 @@ const VIEWS = {
 
 function render(){
   paintStatus();
+  if (prefs.tab === "search") return; // the search screen keeps its own state and is painted separately
   const pane = $("#pane");
   const now = Date.now();
   const top = pane.scrollTop;
@@ -848,6 +912,294 @@ function installSection(){
     </ol>`;
 }
 
+/* ================= motion ================= */
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)");
+const STAGGER = ".cycle,.reset,.fis,.card,.inv,.nw-row,.hit,.drop-group,.order";
+function animateIn(root, dir, axis){
+  if (REDUCED.matches || !root || !root.animate) return;
+  const d = (dir || 1) * 22;
+  const from = axis === "x" ? `translateX(${d}px)` : `translateY(${d}px)`;
+  const view = root.querySelector(".view") || root;
+  view.animate([{ opacity:0, transform:from }, { opacity:1, transform:"none" }], { duration:280, easing:"cubic-bezier(.2,.75,.25,1)" });
+  const bar = root.querySelector(":scope > .toolbar");
+  if (bar) bar.animate([{ opacity:0 }, { opacity:1 }], { duration:200, easing:"ease-out" });
+  [...view.querySelectorAll(STAGGER)].slice(0, 12).forEach((el, i) =>
+    el.animate([{ opacity:0, transform:"translateY(10px) scale(.985)" }, { opacity:1, transform:"none" }],
+      { duration:300, delay:60 + i * 32, easing:"cubic-bezier(.2,.75,.25,1)", fill:"backwards" }));
+}
+function placeMark(animate){
+  const t = document.querySelector('.tab[aria-current="page"]'), m = $("#rail-mark");
+  if (!t || !m) return;
+  m.classList.toggle("anim", !!animate && !REDUCED.matches);
+  m.style.setProperty("--y", (t.offsetTop + t.offsetHeight / 2 - m.offsetHeight / 2) + "px");
+}
+function showPanes(){
+  const s = prefs.tab === "search";
+  $("#pane").hidden = s; $("#spane").hidden = !s;
+}
+function switchTab(id){
+  if (id === prefs.tab) return;
+  const from = TABS.findIndex(t => t[0] === prefs.tab), to = TABS.findIndex(t => t[0] === id);
+  prefs.tab = id; savePrefs(); paintTabs(); placeMark(true); showPanes();
+  if (id === "search") { openSearch(); animateIn($("#spane"), Math.sign(to - from)); }
+  else { $("#pane").scrollTop = 0; render(); animateIn($("#pane"), Math.sign(to - from)); }
+}
+let toastT = 0;
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  if (!REDUCED.matches && t.animate) t.animate([{ opacity:0, transform:"translate(-50%,8px)" }, { opacity:1, transform:"translate(-50%,0)" }], { duration:180 });
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 1800);
+}
+
+/* ================= search: warframe.market prices + drop sources ================= */
+const MARKET = "https://api.warframe.market";
+const WFM_ASSETS = "https://warframe.market/static/assets/";
+const SR = { q:"", items:null, itemsState:"idle", hits:[], detail:null, recent:store.get("orbiter.recent", []), seq:0 };
+const MARKET_PLATFORM = { pc:"pc", ps4:"ps4", xb1:"xbox", swi:"switch" };
+
+function getJSON(url, headers){
+  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 15000);
+  // Inside the Android app these requests are fetched natively (headers added there), so no custom headers are sent here.
+  const opts = { signal:ctrl.signal };
+  if (headers && !IN_APP) opts.headers = headers;
+  return fetch(url, opts).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).finally(() => clearTimeout(to));
+}
+const marketJSON = path => getJSON(MARKET + path, { Platform:MARKET_PLATFORM[prefs.platform] || "pc", Language:"en", Crossplay:"true" });
+
+function loadMarketItems(){
+  if (SR.itemsState === "loading") return;
+  const c = store.get("orbiter.wfm.items", null);
+  if (c && Array.isArray(c.list) && c.list.length) {
+    SR.items = c.list; SR.itemsState = "ready";
+    if (Date.now() - (c.t || 0) < 3 * DAY) return;
+  }
+  const had = !!SR.items;
+  SR.itemsState = "loading";
+  marketJSON("/v2/items").then(j => {
+    const arr = (j && (Array.isArray(j.data) ? j.data : j.payload && j.payload.items)) || [];
+    const list = arr.map(i => {
+      const en = (i.i18n && i.i18n.en) || {};
+      return [i.slug || i.url_name || "", en.name || i.item_name || "", en.thumb || en.icon || i.thumb || ""];
+    }).filter(x => x[0] && x[1]);
+    if (!list.length) throw new Error("empty list");
+    SR.items = list; SR.itemsState = "ready";
+    store.set("orbiter.wfm.items", { t:Date.now(), list });
+  }).catch(() => { SR.itemsState = had ? "ready" : "error"; })
+    .finally(() => { if (prefs.tab === "search" && !SR.detail) paintSearch(); });
+}
+
+function matchItems(q){
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length || !SR.items) return [];
+  const out = [];
+  for (const it of SR.items) {
+    const n = it[1].toLowerCase();
+    if (!words.every(w => n.includes(w))) continue;
+    const rank = n.startsWith(words[0]) ? 0 : n.split(/[\s'-]+/).some(t => t.startsWith(words[0])) ? 1 : 2;
+    out.push([rank, n.length, it]);
+  }
+  out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  return out.slice(0, 30).map(x => x[2]);
+}
+function artFor(name, thumb, cls){
+  const f = itemFile(name) || itemFile(String(name).replace(/\s+set$/i, ""));
+  if (f) return img(f, cls, name);
+  if (thumb) return `<img class="${cls}" src="${WFM_ASSETS}${esc(thumb)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
+  return `<span class="${cls} ph" aria-hidden="true"></span>`;
+}
+const fmtChance = c => (c < 1 ? c.toFixed(2) : c < 10 ? c.toFixed(1).replace(/\.0$/, "") : String(Math.round(c))) + "%";
+const rarClass = r => "rar-" + String(r || "common").toLowerCase().replace(/[^a-z]/g, "");
+
+function groupDrops(arr, query){
+  const q = query.toLowerCase().trim();
+  const relicBase = /\s+relic$/i.test(query) ? q.replace(/\s+relic$/, "") : null;
+  const relicRe = /^(.*?) Relic(?: \((Intact|Exceptional|Flawless|Radiant)\))?$/i;
+  const groups = new Map(), contents = new Map();
+  for (const e of Array.isArray(arr) ? arr : []) {
+    const item = String(e.item || ""), place = String(e.place || ""), chance = Number(e.chance) || 0;
+    const m = relicRe.exec(place);
+    if (relicBase && m && m[1].toLowerCase() === relicBase) {
+      const c = contents.get(item) || { item, rarity:e.rarity, ref:{} };
+      c.ref[(m[2] || "Intact").toLowerCase()] = chance; contents.set(item, c);
+      continue;
+    }
+    if (!item.toLowerCase().includes(q)) continue;
+    const g = groups.get(item) || new Map();
+    if (m) {
+      const key = m[1] + " Relic";
+      const r = g.get(key) || { place:key, relic:m[1], ref:{}, rarity:e.rarity, chance:0 };
+      r.ref[(m[2] || "Intact").toLowerCase()] = chance; r.chance = Math.max(r.chance, chance); g.set(key, r);
+    } else {
+      const prev = g.get(place);
+      if (!prev || prev.chance < chance) g.set(place, { place, rarity:e.rarity, chance });
+    }
+    groups.set(item, g);
+  }
+  const list = [...groups.entries()].map(([item, g]) => ({ item, rows:[...g.values()].sort((a, b) => b.chance - a.chance) }))
+    .sort((a, b) => (b.item.toLowerCase() === q) - (a.item.toLowerCase() === q) || a.item.localeCompare(b.item));
+  return { groups:list.slice(0, 12), extra:Math.max(0, list.length - 12),
+    contents:[...contents.values()].sort((a, b) => (b.ref.intact || 0) - (a.ref.intact || 0)) };
+}
+
+function openSearch(){
+  needItems(); loadMarketItems(); paintSearch();
+}
+function remember(name, slug, thumb){
+  SR.recent = [[name, slug || "", thumb || ""], ...SR.recent.filter(r => r[0] !== name)].slice(0, 8);
+  store.set("orbiter.recent", SR.recent);
+}
+function openDetail(name, slug, thumb){
+  const id = ++SR.seq;
+  SR.detail = { id, name, slug, thumb, market:{ state:slug ? "loading" : "none" }, drops:{ state:"loading" }, open:{} };
+  remember(name, slug, thumb);
+  $("#q").blur();
+  paintSearch(); $("#spane").scrollTop = 0; animateIn($("#spane"), 1, "x");
+  const live = () => SR.detail && SR.detail.id === id;
+  if (slug) marketJSON(`/v2/orders/item/${encodeURIComponent(slug)}/top`).then(j => {
+    const d = (j && (j.data || j.payload)) || {};
+    if (live()) SR.detail.market = { state:"ready", sell:(d.sell || []).slice(0, 6), buy:(d.buy || []).slice(0, 6) };
+  }).catch(() => { if (live()) SR.detail.market = { state:"error" }; }).finally(() => { if (live()) paintSearch(); });
+  const dq = name.replace(/\s+set$/i, "");
+  getJSON(`https://api.warframestat.us/drops/search/${encodeURIComponent(dq)}`).then(arr => {
+    if (live()) SR.detail.drops = Object.assign({ state:"ready", query:dq }, groupDrops(arr, dq));
+  }).catch(() => { if (live()) SR.detail.drops = { state:"error" }; }).finally(() => { if (live()) paintSearch(); });
+}
+function closeDetail(){
+  SR.detail = null; paintSearch(); animateIn($("#spane"), -1, "x");
+}
+
+function resultsHtml(){
+  const q = SR.q.trim();
+  if (!q) {
+    const rec = SR.recent.length ? `<section class="field"><span class="lbl">Recent</span><div class="recents">${SR.recent.map((r, i) =>
+      `<button class="chip" data-recent="${i}">${esc(r[0])}</button>`).join("")}</div></section>` : "";
+    const state = SR.itemsState === "loading" && !SR.items ? `<p class="tagline">Loading the warframe.market item list…</p>`
+      : SR.itemsState === "error" ? `<div class="banner"><span>Couldn't load the warframe.market item list. Drop searches still work.</span><button data-act="market-retry">Retry</button></div>` : "";
+    return `${rec}${state}<p class="tagline">Search any item to see live warframe.market prices and where it drops, with drop chances. Relics show what's inside them.</p>`;
+  }
+  SR.hits = matchItems(q);
+  const rows = SR.hits.map((it, i) => `<li><button class="row hit" data-open="${i}">${artFor(it[1], it[2], "hit-art")}
+      <span class="main"><span class="t">${esc(it[1])}</span><span class="s">warframe.market · drops</span></span><span class="chev" aria-hidden="true">›</span></button></li>`).join("");
+  const dropsOnly = `<li><button class="row hit" data-drops="1"><span class="hit-art ph"></span>
+      <span class="main"><span class="t">Drop sources for “${esc(q)}”</span><span class="s">For items that can't be traded</span></span><span class="chev" aria-hidden="true">›</span></button></li>`;
+  const note = !SR.items && SR.itemsState === "loading" ? `<p class="tagline">Loading the warframe.market item list…</p>` : "";
+  return `${note}<ul class="rows frame">${rows}${dropsOnly}</ul>`;
+}
+
+function orderRows(list, kind, itemName){
+  if (!list.length) return `<p class="empty">No ${kind === "sell" ? "sellers" : "buyers"} online right now.</p>`;
+  return `<ul class="rows">${list.map((o, i) => {
+    const u = o.user || {};
+    const who = u.ingameName || u.ingame_name || "Unknown";
+    const st = String(u.status || "").toLowerCase();
+    const rank = o.rank != null ? ` · rank ${esc(o.rank)}` : "";
+    return `<li class="row order">
+      <span class="plat">${esc(o.platinum)}<small>p</small></span>
+      <span class="main"><span class="who"><span class="presence ${st === "ingame" ? "ingame" : st === "online" ? "online" : ""}"></span><span>${esc(who)}</span></span>
+        <span class="s">${st === "ingame" ? "In game" : st === "online" ? "Online" : "Offline"} · qty ${esc(o.quantity != null ? o.quantity : 1)}${rank}</span></span>
+      <button class="copy" data-whisper="${kind}:${i}">Copy /w</button></li>`;
+  }).join("")}</ul>`;
+}
+function whisperFor(kind, i){
+  const d = SR.detail, o = d && d.market[kind] && d.market[kind][i];
+  if (!o) return "";
+  const who = (o.user && (o.user.ingameName || o.user.ingame_name)) || "";
+  const item = d.name + (o.rank != null ? ` (rank ${o.rank})` : "");
+  return `/w ${who} Hi! I want to ${kind === "sell" ? "buy" : "sell"}: "${item}" for ${o.platinum} platinum. (warframe.market)`;
+}
+
+function detailHtml(){
+  const d = SR.detail;
+  const m = d.market;
+  let market = "";
+  if (d.slug) {
+    let body;
+    if (m.state === "loading") body = `<p class="tagline">Loading live orders…</p>`;
+    else if (m.state === "error") body = `<div class="banner"><span>Couldn't reach warframe.market.</span><button data-act="detail-retry">Retry</button></div>`;
+    else {
+      const low = m.sell.length ? Math.min(...m.sell.map(o => +o.platinum || Infinity)) : null;
+      const high = m.buy.length ? Math.max(...m.buy.map(o => +o.platinum || 0)) : null;
+      body = `<div class="summary">
+          <div><span class="lbl">Lowest sell</span><b>${low != null && isFinite(low) ? low + "<small>p</small>" : "—"}</b></div>
+          <div><span class="lbl">Highest buy</span><b>${high != null ? high + "<small>p</small>" : "—"}</b></div>
+        </div>
+        <div class="sub-h">Sellers online</div>${orderRows(m.sell, "sell")}
+        <div class="sub-h">Buyers online</div>${orderRows(m.buy, "buy")}
+        <p class="fine">Copy /w puts the trade whisper on the clipboard so you can paste it into in-game chat.</p>`;
+    }
+    market = `<section class="card frame"><div class="sec-h"><h2>warframe.market</h2><span class="meta">crossplay</span></div>${body}</section>`;
+  }
+
+  const dr = d.drops;
+  let drops;
+  if (dr.state === "loading") drops = `<p class="tagline">Looking up drop sources…</p>`;
+  else if (dr.state === "error") drops = `<div class="banner"><span>Couldn't load drop data.</span><button data-act="detail-retry">Retry</button></div>`;
+  else {
+    const contents = dr.contents.length ? `<div class="drop-group"><h3>Relic contents <span>Intact · Radiant</span></h3><ul class="rows">${dr.contents.map(c =>
+      `<li class="row">${artFor(c.item, "", "hit-art")}<span class="main"><span class="t">${esc(c.item)}</span><span class="s ${rarClass(c.rarity)}">${esc(c.rarity || "")}</span></span>
+        <span class="chance">${c.ref.intact != null ? fmtChance(c.ref.intact) : "—"}<small class="rar-legendary">${c.ref.radiant != null ? "Rad " + fmtChance(c.ref.radiant) : ""}</small></span></li>`).join("")}</ul></div>` : "";
+    const groups = dr.groups.map((g, gi) => {
+      const open = d.open[gi]; const rows = open ? g.rows : g.rows.slice(0, 8);
+      return `<div class="drop-group"><h3>${esc(g.item)} <span>${g.rows.length} source${g.rows.length === 1 ? "" : "s"}</span></h3><ul class="rows">${rows.map(r => {
+        if (r.relic) {
+          const tier = TIER[r.relic.split(" ")[0]];
+          return `<li class="row"><span class="relic" style="--tier:var(${tier ? tier.v : "--text"})"><span class="art">${tier ? tier.art.map(a => img(a, "", "")).join("") : ""}</span></span>
+            <span class="main"><span class="t">${esc(r.place)}</span><span class="s ${rarClass(r.rarity)}">${esc(r.rarity || "")}${r.ref.radiant != null ? ` · Radiant ${fmtChance(r.ref.radiant)}` : ""}</span></span>
+            <span class="chance">${fmtChance(r.ref.intact != null ? r.ref.intact : r.chance)}<small>${r.ref.intact != null ? "Intact" : ""}</small></span></li>`;
+        }
+        const pl = r.place.includes("/") ? r.place.split("/")[0] : "";
+        return `<li class="row row-2"><span class="main"><span class="t" style="white-space:normal;font-size:1rem">${pl ? planetBall(pl) + " " : ""}${esc(r.place)}</span></span>
+          <span class="chance ${rarClass(r.rarity)}">${fmtChance(r.chance)}<small>${esc(r.rarity || "")}</small></span></li>`;
+      }).join("")}</ul>${!open && g.rows.length > 8 ? `<button class="more" data-more="${gi}">Show all ${g.rows.length}</button>` : ""}</div>`;
+    }).join("");
+    drops = contents + groups || `<p class="empty">No drop sources found for “${esc(dr.query)}”. It may come from a vendor, the market or crafting.</p>`;
+    if (dr.extra) drops += `<p class="fine" style="padding:.3rem .5rem">${dr.extra} more matching items. Search a fuller name to narrow it down.</p>`;
+  }
+  return `<button class="back" data-act="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M15 5l-7 7 7 7"/></svg>Results</button>
+    <div class="detail-head">${artFor(d.name, d.thumb, "hero")}<div><div class="big">${esc(d.name)}</div><div class="sub">${d.slug ? "Tradable" : "Drop search"}</div></div></div>
+    ${market}
+    <section class="card frame" style="padding-inline:.2rem"><div class="sec-h" style="padding-inline:.5rem"><h2>Drop sources</h2><span class="meta">chance per drop</span></div>${drops}</section>`;
+}
+
+function paintSearch(){
+  const body = $("#s-body");
+  body.innerHTML = SR.detail ? detailHtml() : resultsHtml();
+  $("#q-clear").hidden = !SR.q;
+}
+let qT = 0;
+$("#q").addEventListener("input", e => {
+  SR.q = e.target.value; clearTimeout(qT);
+  qT = setTimeout(() => { if (SR.detail) SR.detail = null; paintSearch(); }, 110);
+});
+$("#q").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); if (SR.hits.length === 1) openDetail(SR.hits[0][1], SR.hits[0][0], SR.hits[0][2]); else e.target.blur(); }
+});
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+  try {
+    const ta = document.createElement("textarea"); ta.value = t; ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;opacity:0;top:0;left:0"; document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy"); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+function searchClick(b){
+  if (b.id === "q-clear") { $("#q").value = ""; SR.q = ""; SR.detail = null; paintSearch(); $("#q").focus(); return true; }
+  if (b.dataset.open != null) { const it = SR.hits[+b.dataset.open]; if (it) openDetail(it[1], it[0], it[2]); return true; }
+  if (b.dataset.drops) { openDetail(SR.q.trim(), "", ""); return true; }
+  if (b.dataset.recent != null) { const r = SR.recent[+b.dataset.recent]; if (r) openDetail(r[0], r[1], r[2]); return true; }
+  if (b.dataset.act === "back") { closeDetail(); return true; }
+  if (b.dataset.act === "detail-retry" && SR.detail) { const d = SR.detail; openDetail(d.name, d.slug, d.thumb); return true; }
+  if (b.dataset.act === "market-retry") { SR.itemsState = "idle"; store.set("orbiter.wfm.items", null); loadMarketItems(); paintSearch(); return true; }
+  if (b.dataset.more != null && SR.detail) { SR.detail.open[+b.dataset.more] = true; paintSearch(); return true; }
+  if (b.dataset.whisper) {
+    const [kind, i] = b.dataset.whisper.split(":");
+    const text = whisperFor(kind, +i);
+    if (text) copyText(text).then(ok => toast(ok ? "Whisper copied" : "Couldn't copy. Long-press to select instead."));
+    return true;
+  }
+  return false;
+}
+
 /* ================= settings ================= */
 function openSettings(){
   const sh = $("#sheet");
@@ -873,10 +1225,8 @@ function closeSettings(){ $("#sheet").hidden = true; $("#set-btn").focus(); }
 /* ================= events ================= */
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) { if (e.target.id === "sheet") closeSettings(); return; }
-  if (b.dataset.tab) {
-    prefs.tab = b.dataset.tab; savePrefs(); paintTabs();
-    $("#pane").scrollTop = 0; render(); return;
-  }
+  if (b.dataset.tab) { switchTab(b.dataset.tab); return; }
+  if (prefs.tab === "search" && b.closest("#spane") && searchClick(b)) return;
   if (b.id === "status" || b.dataset.act === "refresh") { load(); return; }
   if (b.id === "set-btn") { openSettings(); return; }
   if (b.id === "install-btn" || b.dataset.act === "install") { promptInstall(); return; }
@@ -887,7 +1237,7 @@ document.addEventListener("click", e => {
     return;
   }
   if (b.dataset.act === "close") { closeSettings(); return; }
-  if (b.dataset.scale) { prefs.scale = b.dataset.scale; savePrefs(); applyScale(); openSettings(); return; }
+  if (b.dataset.scale) { prefs.scale = b.dataset.scale; savePrefs(); applyScale(); openSettings(); placeMark(false); return; }
   if (b.dataset.plat) {
     if (prefs.platform !== b.dataset.plat) {
       prefs.platform = b.dataset.plat; savePrefs();
@@ -917,13 +1267,19 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && Date.now() - S.fetchedAt > MIN) load();
 });
 window.addEventListener("online", () => load());
-let skyT = 0; window.addEventListener("resize", () => { clearTimeout(skyT); skyT = setTimeout(paintSky, 150); });
+let skyT = 0; window.addEventListener("resize", () => { clearTimeout(skyT); skyT = setTimeout(() => { paintSky(); placeMark(false); }, 150); });
 
 /* ================= boot ================= */
 if (document.fullscreenEnabled && !isInstalled()) $("#fs-btn").hidden = false;
+if (!TABS.some(t => t[0] === prefs.tab)) prefs.tab = "world";
 paintSky();
 paintTabs();
+placeMark(false);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeMark(false));
+showPanes();
+if (prefs.tab === "search") openSearch();
 render();
+animateIn(prefs.tab === "search" ? $("#spane") : $("#pane"), 1);
 load();
 setInterval(tick, 1000);
 if (!IN_APP && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
