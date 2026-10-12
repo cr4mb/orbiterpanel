@@ -39,6 +39,9 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Orbiter Panel build ${{ github.run_number }}
-          body: Download OrbiterPanel.apk below and open it on the Thor to install or update.
+          body: |
+            Download **OrbiterPanel.apk** below and open it on your Android device to install, or use Settings → Check for updates inside the app.
+
+            Unofficial fan project built with AI assistance. Not affiliated with Digital Extremes. See the README for disclaimers.
           files: OrbiterPanel.apk
           make_latest: true

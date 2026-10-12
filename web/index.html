@@ -97,6 +97,8 @@ img:not(.broken) + .gem{display:none}
 .foot-row{display:flex;justify-content:center;width:100%}
 .icon-btn{width:2.1rem;height:2.3rem;display:grid;place-items:center;color:var(--muted)}
 .icon-btn svg{width:1.3rem;height:1.3rem}
+.icon-btn.has-update{position:relative;color:var(--gold)}
+.icon-btn.has-update::after{content:"";position:absolute;top:.35rem;right:.3rem;width:.42rem;height:.42rem;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 .5rem var(--gold)}
 .icon-btn.install{color:var(--space);background:var(--gold);width:3.2rem;height:2.2rem;margin-block:.15rem}
 .status{display:flex;flex-direction:column;align-items:center;gap:.15rem;font-family:var(--f-head);font-weight:600;font-size:.66rem;letter-spacing:.06em;color:var(--muted);padding-block:.3rem;width:100%}
 .dot{width:.45rem;height:.45rem;transform:rotate(45deg);background:var(--faint)}
@@ -124,6 +126,8 @@ img:not(.broken) + .gem{display:none}
 .pl.band{background:repeating-linear-gradient(170deg,transparent 0 .13em,rgba(60,30,10,.28) .13em .2em),radial-gradient(circle at 33% 30%,var(--p1),var(--p2) 50%,var(--p3) 82%)}
 .pl.ring::after{content:"";position:absolute;left:-.32em;right:-.32em;top:.36em;height:.28em;border:1px solid color-mix(in srgb,var(--p1) 80%,transparent);border-radius:50%;transform:rotate(-14deg)}
 .pl.prox::before{content:"";position:absolute;inset:-.22em;border:1px dashed color-mix(in srgb,var(--p1) 60%,transparent);border-radius:50%}
+.chip .pl{margin-right:.15em}
+.chip .pl.ring{margin-inline:.35em .5em}
 .nodeline{display:flex;align-items:center;gap:.4rem;min-width:0}
 .nodeline > span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -316,7 +320,7 @@ img:not(.broken) + .gem{display:none}
 .chance small{display:block;font-family:var(--f-head);font-weight:700;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
 .rar-common{color:#d39b68}.rar-uncommon{color:#c3cbd4}.rar-rare{color:#e6cd80}.rar-legendary{color:#f4eedb}
 .more{width:100%;min-height:2.3rem;font-family:var(--f-head);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--void)}
-.toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:20;transform:translateX(-50%);background:var(--panel-hi);border:1px solid var(--gold);color:var(--text);padding:.5rem .9rem;font-family:var(--f-head);font-weight:700;letter-spacing:.06em;font-size:.9rem;pointer-events:none}
+.toast{max-width:calc(100% - 2rem);width:max-content;text-align:center;position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:20;transform:translateX(-50%);background:var(--panel-hi);border:1px solid var(--gold);color:var(--text);padding:.5rem .9rem;font-family:var(--f-head);font-weight:700;letter-spacing:.06em;font-size:.9rem;pointer-events:none}
 
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
@@ -495,13 +499,25 @@ function rewardParts(r){
 const rewardText = r => rewardParts(r).map(p => p.text).filter(Boolean).join(", ") || (r && (r.asString || r.itemString)) || "";
 
 /* item art: a name -> image index, loaded only when a screen needs it */
-let ITEMS = null, itemsState = "idle";
+let ITEMS = null, ITEM_LIST = null, ITEM_CATS = [], itemsState = "idle";
+function takeItems(j){
+  // v2: { c:[category labels], i:[[name, image, categoryIndex, location?], ...] }; v1: { lowercase name: image }
+  const map = {};
+  if (j && Array.isArray(j.i)) {
+    ITEM_CATS = j.c || []; ITEM_LIST = j.i;
+    for (const e of j.i) {
+      const k = e[0].toLowerCase(); map[k] = e[1];
+      if (/ relic$/.test(k)) map[k.replace(/ relic$/, "")] = e[1];
+    }
+  } else if (j) Object.assign(map, j);
+  ITEMS = map;
+}
 function needItems(){
   if (itemsState !== "idle") return;
   if (location.protocol === "file:") { itemsState = "none"; return; }
   itemsState = "loading";
   fetch("items.json").then(r => r.ok ? r.json() : null)
-    .then(j => { ITEMS = j || {}; itemsState = "ready"; render(); if (prefs.tab === "search") paintSearch(); })
+    .then(j => { takeItems(j); itemsState = "ready"; SR.pool = null; render(); if (prefs.tab === "search") paintSearch(); })
     .catch(() => { itemsState = "none"; });
 }
 const PART = /\s+(barrel|receiver|stock|blade|blades|handle|hilt|link|grip|string|upper limb|lower limb|chassis|systems|neuroptics|harness|wings|carapace|cerebrum|guard|heatsink|gauntlet|ornament|pouch|stars|disc|boot|head|chain|band|buckle)$/;
@@ -988,19 +1004,43 @@ function loadMarketItems(){
     .finally(() => { if (prefs.tab === "search" && !SR.detail) paintSearch(); });
 }
 
+/* One searchable list: every tradable item from warframe.market plus every other item in the game data. */
+function searchPool(){
+  const key = (SR.items ? SR.items.length : 0) + ":" + (ITEM_LIST ? ITEM_LIST.length : 0);
+  if (SR.pool && SR.poolKey === key) return SR.pool;
+  const pool = [], seen = new Map();
+  const info = {};
+  if (ITEM_LIST) for (const e of ITEM_LIST) info[e[0].toLowerCase()] = e;
+  for (const it of SR.items || []) {
+    const n = it[1].toLowerCase();
+    const e = info[n] || info[n.replace(/\s+(set|blueprint)$/, "")];
+    const h = { name:it[1], slug:it[0], thumb:it[2], tradable:true, cat:e ? ITEM_CATS[e[2]] : /\sset$/.test(n) ? "Set" : "", loc:e && e[3] || "", n };
+    seen.set(n, h); pool.push(h);
+  }
+  for (const e of ITEM_LIST || []) {
+    const n = e[0].toLowerCase();
+    if (seen.has(n)) continue;
+    const h = { name:e[0], file:e[1], tradable:false, cat:ITEM_CATS[e[2]] || "", loc:e[3] || "", n };
+    seen.set(n, h); pool.push(h);
+  }
+  SR.pool = pool; SR.poolKey = key; SR.byName = seen;
+  return pool;
+}
 function matchItems(q){
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  if (!words.length || !SR.items) return [];
+  if (!words.length) return [];
   const out = [];
-  for (const it of SR.items) {
-    const n = it[1].toLowerCase();
+  for (const h of searchPool()) {
+    const n = h.n;
     if (!words.every(w => n.includes(w))) continue;
     const rank = n.startsWith(words[0]) ? 0 : n.split(/[\s'-]+/).some(t => t.startsWith(words[0])) ? 1 : 2;
-    out.push([rank, n.length, it]);
+    out.push([rank, h.cat === "Cosmetic" || h.cat === "Glyph" || h.cat === "Sigil" ? 1 : 0, n.length, h]);
   }
-  out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  return out.slice(0, 30).map(x => x[2]);
+  out.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  return out.slice(0, 40).map(x => x[3]);
 }
+const hitArt = (h, cls) => h.file ? img(h.file, cls, h.name) : artFor(h.name, h.thumb, cls);
+function findHit(name){ searchPool(); return (SR.byName && SR.byName.get(String(name).toLowerCase())) || null; }
 function artFor(name, thumb, cls){
   const f = itemFile(name) || itemFile(String(name).replace(/\s+set$/i, ""));
   if (f) return img(f, cls, name);
@@ -1048,9 +1088,12 @@ function remember(name, slug, thumb){
   SR.recent = [[name, slug || "", thumb || ""], ...SR.recent.filter(r => r[0] !== name)].slice(0, 8);
   store.set("orbiter.recent", SR.recent);
 }
-function openDetail(name, slug, thumb){
+function openHit(h){ openDetail(h.name, h.slug || "", h.thumb || "", h); }
+function openDetail(name, slug, thumb, hit){
   const id = ++SR.seq;
-  SR.detail = { id, name, slug, thumb, market:{ state:slug ? "loading" : "none" }, drops:{ state:"loading" }, open:{} };
+  const h = hit || findHit(name) || {};
+  SR.detail = { id, name, slug, thumb, file:h.file || "", cat:h.cat || "", loc:h.loc || "", known:!!(hit || findHit(name)),
+    market:{ state:slug ? "loading" : "none" }, drops:{ state:"loading" }, open:{} };
   remember(name, slug, thumb);
   $("#q").blur();
   paintSearch(); $("#spane").scrollTop = 0; animateIn($("#spane"), 1, "x");
@@ -1078,11 +1121,13 @@ function resultsHtml(){
     return `${rec}${state}<p class="tagline">Search any item to see live warframe.market prices and where it drops, with drop chances. Relics show what's inside them.</p>`;
   }
   SR.hits = matchItems(q);
-  const rows = SR.hits.map((it, i) => `<li><button class="row hit" data-open="${i}">${artFor(it[1], it[2], "hit-art")}
-      <span class="main"><span class="t">${esc(it[1])}</span><span class="s">warframe.market · drops</span></span><span class="chev" aria-hidden="true">›</span></button></li>`).join("");
-  const dropsOnly = `<li><button class="row hit" data-drops="1"><span class="hit-art ph"></span>
-      <span class="main"><span class="t">Drop sources for “${esc(q)}”</span><span class="s">For items that can't be traded</span></span><span class="chev" aria-hidden="true">›</span></button></li>`;
-  const note = !SR.items && SR.itemsState === "loading" ? `<p class="tagline">Loading the warframe.market item list…</p>` : "";
+  const rows = SR.hits.map((h, i) => `<li><button class="row hit" data-open="${i}">${hitArt(h, "hit-art")}
+      <span class="main"><span class="t">${esc(h.name)}</span><span class="s">${[h.cat, h.tradable ? '<span style="color:var(--gold)">Tradable</span>' : "Not tradable"].filter(Boolean).join(" · ")}</span></span><span class="chev" aria-hidden="true">›</span></button></li>`).join("");
+  const exact = SR.hits.some(h => h.n === q.toLowerCase());
+  const dropsOnly = exact ? "" : `<li><button class="row hit" data-drops="1"><span class="hit-art ph"></span>
+      <span class="main"><span class="t">Drop tables for “${esc(q)}”</span><span class="s">Search the drop tables for this exact text</span></span><span class="chev" aria-hidden="true">›</span></button></li>`;
+  const note = !SR.items && SR.itemsState === "loading" ? `<p class="tagline">Loading the warframe.market item list…</p>`
+    : SR.itemsState === "error" && !SR.items ? `<p class="tagline">warframe.market is unreachable, so prices are off for now. Items and drops still work.</p>` : "";
   return `${note}<ul class="rows frame">${rows}${dropsOnly}</ul>`;
 }
 
@@ -1152,11 +1197,19 @@ function detailHtml(){
           <span class="chance ${rarClass(r.rarity)}">${fmtChance(r.chance)}<small>${esc(r.rarity || "")}</small></span></li>`;
       }).join("")}</ul>${!open && g.rows.length > 8 ? `<button class="more" data-more="${gi}">Show all ${g.rows.length}</button>` : ""}</div>`;
     }).join("");
-    drops = contents + groups || `<p class="empty">No drop sources found for “${esc(dr.query)}”. It may come from a vendor, the market or crafting.</p>`;
+    drops = contents + groups || `<p class="empty" style="padding-inline:.5rem">${d.loc
+      ? "No mission reward tables list it. It drops as a normal resource pickup in the places above."
+      : `No drop sources found for “${esc(dr.query)}”. It may come from a vendor, crafting or an event.`}</p>`;
     if (dr.extra) drops += `<p class="fine" style="padding:.3rem .5rem">${dr.extra} more matching items. Search a fuller name to narrow it down.</p>`;
   }
   return `<button class="back" data-act="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M15 5l-7 7 7 7"/></svg>Results</button>
-    <div class="detail-head">${artFor(d.name, d.thumb, "hero")}<div><div class="big">${esc(d.name)}</div><div class="sub">${d.slug ? "Tradable" : "Drop search"}</div></div></div>
+    <div class="detail-head">${d.file ? img(d.file, "hero", d.name) : artFor(d.name, d.thumb, "hero")}<div><div class="big">${esc(d.name)}</div>
+      <div class="sub">${[esc(d.cat), d.slug ? '<span style="color:var(--gold)">Tradable</span>' : d.known ? "Not tradable" : "Drop table search"].filter(Boolean).join(" · ")}</div></div></div>
+    ${d.loc ? `<section class="card frame"><div class="sec-h"><h2>Found on</h2></div><div class="recents">${
+      d.loc.split(/,\s*(?:and\s+)?|\s+and\s+/).map(s => s.trim()).filter(Boolean).map(p => {
+        const pl = Object.keys(PLANETS).find(k => k !== "_" && p.toLowerCase().includes(k));
+        return `<span class="chip" style="cursor:default">${pl ? planetBall(pl) : ""}${esc(p)}</span>`;
+      }).join("")}</div></section>` : ""}
     ${market}
     <section class="card frame" style="padding-inline:.2rem"><div class="sec-h" style="padding-inline:.5rem"><h2>Drop sources</h2><span class="meta">chance per drop</span></div>${drops}</section>`;
 }
@@ -1172,7 +1225,12 @@ $("#q").addEventListener("input", e => {
   qT = setTimeout(() => { if (SR.detail) SR.detail = null; paintSearch(); }, 110);
 });
 $("#q").addEventListener("keydown", e => {
-  if (e.key === "Enter") { e.preventDefault(); if (SR.hits.length === 1) openDetail(SR.hits[0][1], SR.hits[0][0], SR.hits[0][2]); else e.target.blur(); }
+  if (e.key === "Enter") {
+    e.preventDefault(); clearTimeout(qT);
+    SR.hits = matchItems(SR.q.trim());
+    const q = SR.q.trim().toLowerCase(), h = SR.hits.find(x => x.n === q) || (SR.hits.length === 1 ? SR.hits[0] : null);
+    if (h) openHit(h); else e.target.blur();
+  }
 });
 async function copyText(t){
   try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
@@ -1184,7 +1242,7 @@ async function copyText(t){
 }
 function searchClick(b){
   if (b.id === "q-clear") { $("#q").value = ""; SR.q = ""; SR.detail = null; paintSearch(); $("#q").focus(); return true; }
-  if (b.dataset.open != null) { const it = SR.hits[+b.dataset.open]; if (it) openDetail(it[1], it[0], it[2]); return true; }
+  if (b.dataset.open != null) { const h = SR.hits[+b.dataset.open]; if (h) openHit(h); return true; }
   if (b.dataset.drops) { openDetail(SR.q.trim(), "", ""); return true; }
   if (b.dataset.recent != null) { const r = SR.recent[+b.dataset.recent]; if (r) openDetail(r[0], r[1], r[2]); return true; }
   if (b.dataset.act === "back") { closeDetail(); return true; }
@@ -1200,6 +1258,49 @@ function searchClick(b){
   return false;
 }
 
+/* ================= updates (Android app only) ================= */
+const BRIDGE = IN_APP && window.OrbiterApp ? window.OrbiterApp : null;
+const UPD = { state:"idle", current:0, latest:0, url:"", pct:0, msg:"" };
+try { if (BRIDGE) UPD.current = +BRIDGE.versionCode() || 0; } catch (e) {}
+window.__orbiterUpdate = r => {
+  Object.assign(UPD, r || {});
+  if (UPD.state === "available") $("#set-btn").classList.add("has-update");
+  if (UPD.state === "latest" || UPD.state === "installing") $("#set-btn").classList.remove("has-update");
+  if (UPD.auto && UPD.state === "available") toast(`Build ${UPD.latest} is available. Open Settings to update.`);
+  UPD.auto = false;
+  if (!$("#sheet").hidden) openSettings();
+};
+function checkUpdates(auto){
+  if (!BRIDGE || UPD.state === "checking" || UPD.state === "downloading") return;
+  Object.assign(UPD, { state:"checking", auto:!!auto });
+  store.set("orbiter.updCheck", Date.now());
+  try { BRIDGE.checkForUpdate(); } catch (e) { UPD.state = "error"; UPD.msg = "The updater isn't available in this build."; }
+  if (!$("#sheet").hidden) openSettings();
+}
+function installUpdate(){
+  if (!BRIDGE || !UPD.url) return;
+  Object.assign(UPD, { state:"downloading", pct:0 });
+  try { BRIDGE.installUpdate(UPD.url); } catch (e) { UPD.state = "error"; UPD.msg = "Couldn't start the download."; }
+  if (!$("#sheet").hidden) openSettings();
+}
+function updateSection(){
+  if (!BRIDGE) return IN_APP ? `<p class="fine">This build can't update itself. Install the latest APK from the GitHub Releases page once; later builds can update from here.</p>`
+    : `<p class="fine">The web version always loads the newest files, so there's nothing to update.</p>`;
+  const cur = UPD.current ? `You have build ${UPD.current}.` : "";
+  let body = "";
+  switch (UPD.state) {
+    case "checking": body = `<p class="fine">Checking GitHub for a newer build…</p>`; break;
+    case "latest": body = `<p class="fine">${cur} That's the newest build.</p><button class="btn" data-act="upd-check">Check again</button>`; break;
+    case "available": body = `<p class="fine">${cur} Build ${UPD.latest} is ready.</p><button class="btn solid" data-act="upd-install">Download and install build ${UPD.latest}</button>`; break;
+    case "downloading": body = `<p class="fine">Downloading build ${UPD.latest}… ${UPD.pct ? UPD.pct + "%" : ""}</p><div class="stock"><i style="width:${UPD.pct || 2}%"></i></div>`; break;
+    case "permission": body = `<p class="fine">Android needs permission for Orbiter Panel to install updates. Turn on <b>Allow from this source</b> in the screen that opened, come back, then tap Install again.</p><button class="btn solid" data-act="upd-install">Install build ${UPD.latest}</button>`; break;
+    case "installing": body = `<p class="fine">Android's installer is open. Tap <b>Update</b> there; your settings are kept.</p>`; break;
+    case "error": body = `<p class="fine">${esc(UPD.msg || "Couldn't check for updates.")}</p><button class="btn" data-act="upd-check">Try again</button>`; break;
+    default: body = `<p class="fine">${cur} Updates come from the GitHub Releases page.</p><button class="btn" data-act="upd-check">Check for updates</button>`;
+  }
+  return body;
+}
+
 /* ================= settings ================= */
 function openSettings(){
   const sh = $("#sheet");
@@ -1208,7 +1309,7 @@ function openSettings(){
     <h2 id="sheet-h">Settings</h2>
     <div class="field"><span class="lbl">Text size</span>
       <div class="seg">${SCALES.map(([v, l]) => `<button data-scale="${v}" aria-pressed="${prefs.scale === v}">${l}</button>`).join("")}</div></div>
-    <div class="field"><span class="lbl">Install</span>${installSection()}</div>
+    ${IN_APP ? `<div class="field"><span class="lbl">Updates</span>${updateSection()}</div>` : `<div class="field"><span class="lbl">Install</span>${installSection()}</div>`}
     <div class="field"><span class="lbl">Platform world state</span>
       <div class="seg">${PLATFORMS.map(([id, l]) => `<button data-plat="${id}" aria-pressed="${prefs.platform === id}">${l}</button>`).join("")}</div>
       <p class="fine">Leave this on PC unless your fissures or sortie don't match what you see in game.</p></div>
@@ -1237,6 +1338,8 @@ document.addEventListener("click", e => {
     return;
   }
   if (b.dataset.act === "close") { closeSettings(); return; }
+  if (b.dataset.act === "upd-check") { checkUpdates(false); return; }
+  if (b.dataset.act === "upd-install") { installUpdate(); return; }
   if (b.dataset.scale) { prefs.scale = b.dataset.scale; savePrefs(); applyScale(); openSettings(); placeMark(false); return; }
   if (b.dataset.plat) {
     if (prefs.platform !== b.dataset.plat) {
@@ -1280,6 +1383,8 @@ showPanes();
 if (prefs.tab === "search") openSearch();
 render();
 animateIn(prefs.tab === "search" ? $("#spane") : $("#pane"), 1);
+// quietly look for a newer APK at most twice a day
+if (BRIDGE && Date.now() - (store.get("orbiter.updCheck", 0) || 0) > 12 * HOUR) setTimeout(() => checkUpdates(true), 4000);
 load();
 setInterval(tick, 1000);
 if (!IN_APP && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
