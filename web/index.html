@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03050a">
+<meta name="description" content="Warframe world timers, fissures, missions, Nightwave and vendors for a second screen.">
+<title>Orbiter Panel</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.warframestat.us">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Rajdhani:wght@500;600;700&family=Saira+Semi+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Layout: icon rail + one pane over a star-chart backdrop. Type scales with the screen so the Thor's bottom panel is filled.
+   Committed single dark look (OLED), modelled on Warframe's menus: translucent navy panels, hairline frames with corner ticks,
+   tracked uppercase headings, Orokin gold and Void cyan. */
+:root{
+  color-scheme: dark;
+  --space:#03050a;
+  --panel:rgba(11,17,27,.80);
+  --panel-hi:rgba(22,33,48,.86);
+  --edge:rgba(150,190,220,.20);
+  --tick:rgba(205,232,250,.62);
+  --text:#ecf2f7;
+  --muted:#a2b3c2;
+  --faint:#63738a;
+  --gold:#e2bb64;
+  --gold-wash:rgba(226,187,100,.15);
+  --void:#82e4ff;
+  --void-wash:rgba(130,228,255,.12);
+
+  --ok:#7fdc9a; --warn:#f0bd5c; --bad:#f07261;
+
+  --s-day:#ffd27a; --s-night:#a6b0ff; --s-warm:#ffa45e; --s-cold:#9fdcff;
+  --s-fass:#ff8a5c; --s-vome:#6ee0cf; --s-corpus:#7cb6ff; --s-grineer:#f07b55;
+  --s-joy:#ffdd66; --s-anger:#ff6555; --s-envy:#90de74; --s-sorrow:#86a3ee; --s-fear:#c592ea;
+
+  --t-lith:#d39b68; --t-meso:#c3cbd4; --t-neo:#e6cd80; --t-axi:#f4eedb; --t-requiem:#ef5b52; --t-omnia:#c39cff;
+
+  --fa-grineer:#e8804a; --fa-corpus:#64b2ee; --fa-infested:#96d061; --fa-other:#c9c0a8;
+
+  --f-head:"Rajdhani","Saira Semi Condensed","Roboto Condensed","Arial Narrow",sans-serif;
+  --f-body:"Saira Semi Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"Roboto Mono",monospace;
+
+  --ui-scale:1;
+  --rail:4.3rem;
+  --gap:.55rem;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{
+  /* Grows with whichever screen dimension is tighter, then the Text size setting scales it. */
+  font-size:calc(clamp(13px, min(3.5vw, 4.15vh), 21px) * var(--ui-scale));
+  height:100%;background:var(--space);
+}
+body{margin:0;height:100%;background:var(--space);color:var(--text);font-family:var(--f-body);font-size:1rem;line-height:1.28;-webkit-tap-highlight-color:transparent;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+img{max-width:100%}
+img.broken{display:none}
+img:not(.broken) + .gem{display:none}
+.mono{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.lbl{font-family:var(--f-head);font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* frame: hairline box with Warframe-style corner ticks */
+.frame{
+  --tl:.7rem;
+  border:1px solid var(--edge);
+  background:
+    linear-gradient(var(--tick),var(--tick)) top left / var(--tl) 1px no-repeat,
+    linear-gradient(var(--tick),var(--tick)) top left / 1px var(--tl) no-repeat,
+    linear-gradient(var(--tick),var(--tick)) bottom right / var(--tl) 1px no-repeat,
+    linear-gradient(var(--tick),var(--tick)) bottom right / 1px var(--tl) no-repeat,
+    var(--panel);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+
+/* ---------- shell ---------- */
+.app{position:relative;z-index:1;display:flex;height:100%;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) 0}
+.rail{flex:0 0 var(--rail);display:flex;flex-direction:column;border-right:1px solid var(--edge);background:linear-gradient(90deg,rgba(5,9,15,.92),rgba(8,13,21,.78));padding-left:env(safe-area-inset-left,0px);overflow-y:auto;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.tabs{display:flex;flex-direction:column;flex:1 0 auto}
+.tab{flex:1;min-height:2.65rem;max-height:5.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;color:var(--faint);position:relative;font-family:var(--f-head);font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.tab svg{width:1.55rem;height:1.55rem}
+.tab[aria-current="page"]{color:var(--gold);background:linear-gradient(90deg,transparent,var(--gold-wash))}
+.tab[aria-current="page"]::after{content:"";position:absolute;right:-.3rem;top:50%;width:.5rem;height:.5rem;background:var(--gold);transform:translateY(-50%) rotate(45deg);box-shadow:0 0 .6rem var(--gold)}
+.rail-foot{display:flex;flex-direction:column;align-items:center;gap:.1rem;padding-block:.25rem;border-top:1px solid var(--edge)}
+.foot-row{display:flex;justify-content:center;width:100%}
+.icon-btn{width:2.1rem;height:2.3rem;display:grid;place-items:center;color:var(--muted)}
+.icon-btn svg{width:1.3rem;height:1.3rem}
+.icon-btn.install{color:var(--space);background:var(--gold);width:3.2rem;height:2.2rem;margin-block:.15rem}
+.status{display:flex;flex-direction:column;align-items:center;gap:.15rem;font-family:var(--f-head);font-weight:600;font-size:.66rem;letter-spacing:.06em;color:var(--muted);padding-block:.3rem;width:100%}
+.dot{width:.45rem;height:.45rem;transform:rotate(45deg);background:var(--faint)}
+.status[data-s="live"] .dot{background:var(--ok);box-shadow:0 0 .5rem var(--ok)}
+.status[data-s="stale"] .dot{background:var(--warn)}
+.status[data-s="error"] .dot{background:var(--bad)}
+.status[data-s="loading"] .dot{background:var(--void);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+.pane{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;container-type:inline-size;container-name:pane}
+.view{padding:.6rem .7rem .8rem;display:flex;flex-direction:column;gap:.7rem;max-width:64rem;min-height:100%}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:0}
+.sec-h h2{margin:0;font-family:var(--f-head);font-size:.92rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:.45rem}
+.sec-h h2::before{content:"";width:.42rem;height:.42rem;background:currentColor;transform:rotate(45deg);flex:none}
+.sec-h .meta{font-size:.82rem;color:var(--muted);text-align:right}
+.banner{font-size:.88rem;color:var(--warn);border:1px solid rgba(240,189,92,.4);background:rgba(30,22,8,.7);padding:.45rem .6rem;display:flex;justify-content:space-between;gap:.5rem;align-items:center}
+.banner.err{color:var(--bad);border-color:rgba(240,114,97,.45);background:rgba(34,10,8,.7)}
+.banner button{color:var(--text);text-decoration:underline;flex:none;font-weight:600}
+.empty{color:var(--muted);font-size:.95rem;padding:.75rem 0}
+
+/* planets: drawn, star-chart style */
+.pl{display:inline-block;flex:none;width:1em;height:1em;border-radius:50%;position:relative;vertical-align:-.12em;
+  background:radial-gradient(circle at 33% 30%,var(--p1),var(--p2) 50%,var(--p3) 82%);
+  box-shadow:0 0 .45em color-mix(in srgb,var(--p2) 55%,transparent),inset -.12em -.14em .25em rgba(0,0,0,.55)}
+.pl.band{background:repeating-linear-gradient(170deg,transparent 0 .13em,rgba(60,30,10,.28) .13em .2em),radial-gradient(circle at 33% 30%,var(--p1),var(--p2) 50%,var(--p3) 82%)}
+.pl.ring::after{content:"";position:absolute;left:-.32em;right:-.32em;top:.36em;height:.28em;border:1px solid color-mix(in srgb,var(--p1) 80%,transparent);border-radius:50%;transform:rotate(-14deg)}
+.pl.prox::before{content:"";position:absolute;inset:-.22em;border:1px dashed color-mix(in srgb,var(--p1) 60%,transparent);border-radius:50%}
+.nodeline{display:flex;align-items:center;gap:.4rem;min-width:0}
+.nodeline > span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- world ---------- */
+.view.world{gap:var(--gap);padding-block:.5rem .55rem}
+.cycles{flex:1 1 auto;min-height:14.5rem;max-height:26rem;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:var(--gap)}
+.cycle{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:.45rem .6rem .6rem;min-width:0;isolation:isolate;line-height:1.15}
+.cycle .scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;opacity:.7;filter:saturate(.95)}
+.cycle[data-dim] .scene{filter:brightness(.5) saturate(.6) hue-rotate(-12deg)}
+.cycle::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,rgba(3,6,11,.95) 12%,rgba(3,6,11,.6) 55%,rgba(3,6,11,.2)),
+             radial-gradient(120% 90% at 100% 0%,color-mix(in srgb,var(--state) 30%,transparent),transparent 60%)}
+.cycle .place{margin-bottom:auto;padding-bottom:.25rem;display:flex;align-items:center;gap:.3rem;min-width:0;font-family:var(--f-head);font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text);text-shadow:0 1px 3px #000}
+.cycle .place > span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cycle .place .hint{width:1.1rem;height:1.1rem;object-fit:contain;flex:none;filter:drop-shadow(0 0 .3rem var(--state))}
+.cycle .st{font-family:var(--f-head);font-size:1.6rem;font-weight:700;color:var(--state);line-height:1;letter-spacing:.02em;text-shadow:0 0 .8rem color-mix(in srgb,var(--state) 45%,transparent)}
+.cycle .cd{font-size:1.1rem;color:var(--text);margin-top:.12rem}
+.cycle .next{font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08)}
+.bar i{display:block;height:100%;background:var(--state);box-shadow:0 0 .5rem var(--state);width:0}
+.est{position:absolute;top:.45rem;right:.5rem;font-family:var(--f-num);font-size:.8rem;line-height:1;color:var(--muted);background:rgba(3,6,11,.6);padding:.1rem .2rem}
+.cycle .est ~ .place{padding-right:1.4rem}
+.resets{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+.reset{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:0 .55rem;padding:.35rem .6rem;min-width:0;line-height:1.15}
+.reset .ic{width:2.1rem;height:2.1rem;display:grid;place-items:center}
+.reset .ic > *{grid-area:1/1}
+.reset .ic img{width:100%;height:100%;object-fit:contain}
+.gem{display:block;width:.8rem;height:.8rem;background:var(--void);transform:rotate(45deg);box-shadow:0 0 .7rem var(--void)}
+.reset .rt{min-width:0;display:flex;flex-direction:column}
+.reset .rline{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .5rem}
+.reset .cd{font-size:1.1rem;white-space:nowrap}
+.reset .when{font-size:.78rem;color:var(--muted);white-space:nowrap}
+@container pane (min-width: 46rem){
+  .cycles{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .resets{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@container pane (max-width: 21rem){
+  .cycles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .resets{grid-template-columns:1fr}
+}
+
+/* ---------- controls ---------- */
+.toolbar{position:sticky;top:0;z-index:3;background:linear-gradient(rgba(3,5,10,.97),rgba(3,5,10,.93));padding:.55rem .7rem .5rem;display:flex;flex-direction:column;gap:.45rem;border-bottom:1px solid var(--edge)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--edge);background:rgba(11,17,27,.7)}
+.seg button{min-height:2.5rem;font-family:var(--f-head);font-size:.86rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:.35rem;padding:0 .3rem;white-space:nowrap;min-width:0;overflow:hidden}
+.seg button+button{border-left:1px solid var(--edge)}
+.seg button[aria-pressed="true"]{background:linear-gradient(var(--gold-wash),rgba(226,187,100,.05));color:var(--gold);box-shadow:inset 0 -2px 0 var(--gold)}
+.seg .n{font-family:var(--f-num);font-size:.76rem;opacity:.8;letter-spacing:0}
+.chips{display:flex;gap:.35rem;overflow-x:auto;scrollbar-width:none;margin-inline:-.7rem;padding-inline:.7rem}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:2.4rem;padding:0 .55rem 0 .35rem;border:1px solid var(--edge);background:rgba(11,17,27,.7);font-family:var(--f-head);font-size:.86rem;font-weight:700;letter-spacing:.06em;color:var(--muted);display:inline-flex;align-items:center;gap:.3rem}
+.chip img{width:1.7rem;height:1.7rem;object-fit:contain}
+.chip .gem{width:.6rem;height:.6rem;margin-inline:.35rem .1rem;transform:rotate(45deg);background:var(--tier,var(--void))}
+.chip[aria-pressed="true"]{border-color:var(--tier,var(--void));color:var(--text);background:var(--panel-hi);box-shadow:inset 0 0 .8rem color-mix(in srgb,var(--tier,var(--void)) 25%,transparent)}
+.chip:disabled{opacity:.35}
+.chip .n{font-family:var(--f-num);font-size:.74rem;color:var(--muted);letter-spacing:0}
+
+/* ---------- rows ---------- */
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.65rem;padding:.45rem .5rem;border-bottom:1px solid var(--edge)}
+.row:last-child{border-bottom:0}
+.row .main{min-width:0;display:flex;flex-direction:column;gap:.1rem}
+.row .t{font-family:var(--f-head);font-weight:700;font-size:1.12rem;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+.row .s{font-size:.86rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s.wrap{white-space:normal}
+.row .cd{font-size:1rem;color:var(--text);text-align:right}
+.row-2{grid-template-columns:auto minmax(0,1fr)}
+.row .mod{color:var(--void)}
+.fis{background:linear-gradient(90deg,color-mix(in srgb,var(--tier) 9%,transparent),transparent 45%)}
+.fis:nth-child(odd){background-color:rgba(255,255,255,.015)}
+.relic{width:3.1rem;display:flex;flex-direction:column;align-items:center;gap:0}
+.relic .art{width:2.7rem;height:2.15rem;position:relative;display:grid;place-items:center}
+.relic .art img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 .35rem color-mix(in srgb,var(--tier) 55%,transparent))}
+.relic .art img + img{position:absolute;width:70%;height:70%;right:0;bottom:0}
+.relic .art .gem{position:absolute;width:.9rem;height:.9rem;background:var(--tier);box-shadow:none;transform:rotate(45deg);z-index:-1;opacity:.6}
+.relic b{font-family:var(--f-head);font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tier);line-height:1}
+.fast{font-family:var(--f-head);font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--void);margin-left:.4rem;vertical-align:.15em}
+.faction{width:1.15rem;height:1.15rem;object-fit:contain;flex:none;opacity:.9}
+.idx{width:1.7rem;height:1.7rem;display:grid;place-items:center;font-family:var(--f-num);font-size:.82rem;color:var(--gold);border:1px solid rgba(226,187,100,.4);transform:rotate(45deg)}
+.idx > *{transform:rotate(-45deg)}
+.card{padding:.6rem .7rem;display:flex;flex-direction:column;gap:.4rem;min-width:0}
+.card .rows .row{padding-inline:.15rem}
+.card-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.6rem;align-items:center}
+.portrait{width:3.6rem;height:3.6rem;border:1px solid var(--edge);background:rgba(255,255,255,.03);display:grid;place-items:center;overflow:hidden}
+.portrait img{width:100%;height:100%;object-fit:cover}
+.portrait.contain img{object-fit:contain;padding:.15rem}
+.big{font-family:var(--f-head);font-size:1.45rem;font-weight:700;line-height:1.1}
+.sub{font-size:.9rem;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:var(--gap)}
+.thumb{width:2.6rem;height:2rem;object-fit:contain;flex:none}
+
+/* invasions */
+.inv{padding:.55rem .6rem;display:flex;flex-direction:column;gap:.35rem}
+.inv-top{display:flex;justify-content:space-between;gap:.5rem;align-items:center}
+.inv-top .t{font-family:var(--f-head);font-size:1.1rem;font-weight:700;min-width:0}
+.inv-top .mono{font-size:.85rem;color:var(--muted);flex:none}
+.tug{height:.35rem;display:flex;background:rgba(255,255,255,.08)}
+.tug i{display:block;height:100%}
+.inv-sides{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;font-size:.85rem}
+.side{display:flex;align-items:center;gap:.45rem;min-width:0}
+.side.r{flex-direction:row-reverse;text-align:right}
+.side > div{min-width:0}
+.side em{font-style:normal;font-family:var(--f-head);font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:.3rem}
+.side.r em{justify-content:flex-end}
+.side span{color:var(--text)}
+
+/* nightwave */
+.nw-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.65rem;align-items:center;padding:.5rem .5rem;border-bottom:1px solid var(--edge);width:100%;text-align:left}
+.nw-row:last-child{border-bottom:0}
+.check{width:1.6rem;height:1.6rem;border:1px solid var(--muted);display:grid;place-items:center;color:var(--space);transform:rotate(45deg)}
+.check svg{width:1rem;height:1rem;transform:rotate(-45deg)}
+.nw-row[aria-pressed="true"] .check{background:var(--gold);border-color:var(--gold);box-shadow:0 0 .6rem var(--gold-wash)}
+.nw-row[aria-pressed="true"] .t,.nw-row[aria-pressed="true"] .s{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--faint)}
+.rep{font-family:var(--f-num);font-size:.95rem;color:var(--gold);text-align:right}
+.rep small{display:block;font-family:var(--f-head);font-weight:600;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.nw-row .main{min-width:0;display:flex;flex-direction:column}
+.nw-row .t{font-family:var(--f-head);font-weight:700;font-size:1.08rem}
+.nw-row .s{font-size:.85rem;color:var(--muted)}
+.tally{display:flex;gap:1.4rem;flex-wrap:wrap}
+.tally div{display:flex;flex-direction:column}
+.tally b{font-family:var(--f-num);font-size:1.35rem;font-weight:500}
+
+/* vendors */
+.price{font-family:var(--f-num);font-size:.92rem;text-align:right;white-space:nowrap}
+.price .duc{color:var(--gold);display:inline-flex;align-items:center;gap:.2rem}
+.price .duc img{width:1.1rem;height:1.1rem;object-fit:contain}
+.price .cr{color:var(--muted);font-size:.78rem;display:block}
+.pill{display:inline-block;font-family:var(--f-head);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.1rem .45rem;border:1px solid currentColor}
+.pill.here{color:var(--ok)}
+.pill.away{color:var(--muted)}
+.pill.old{color:var(--warn)}
+.stock{height:.3rem;background:rgba(255,255,255,.08)}
+.stock i{display:block;height:100%;background:var(--gold)}
+.costline{display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:var(--muted)}
+.costline img{width:1.2rem;height:1.2rem;object-fit:contain}
+.reward{display:flex;align-items:center;gap:.6rem}
+.reward img{width:3.4rem;height:2.6rem;object-fit:contain;filter:drop-shadow(0 0 .4rem rgba(226,187,100,.25))}
+
+/* settings sheet */
+.sheet{position:fixed;inset:0;z-index:10;background:rgba(1,3,6,.78);display:flex;align-items:center;justify-content:center;padding:.8rem}
+.sheet-body{width:min(30rem,100%);max-height:100%;overflow:auto;padding:.8rem .9rem;display:flex;flex-direction:column;gap:.8rem}
+.sheet-body h2{margin:0;font-family:var(--f-head);font-size:1rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.field{display:flex;flex-direction:column;gap:.35rem}
+.fine{font-size:.84rem;color:var(--muted);margin:0}
+.btn{min-height:2.6rem;border:1px solid var(--gold);color:var(--gold);font-family:var(--f-head);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.9rem;padding:0 1rem;background:var(--gold-wash)}
+.btn.solid{background:var(--gold);color:var(--space)}
+.steps{margin:0;padding-left:1.2rem;font-size:.86rem;color:var(--muted);display:flex;flex-direction:column;gap:.2rem}
+.steps b{color:var(--text)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="app">
+  <nav class="rail" aria-label="Sections">
+    <div class="tabs" id="tabs"></div>
+    <div class="rail-foot">
+      <button class="icon-btn install" id="install-btn" aria-label="Install app" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg>
+      </button>
+      <button class="status" id="status" data-s="loading" aria-label="Refresh data"><span class="dot"></span><span id="status-t">…</span></button>
+      <div class="foot-row">
+        <button class="icon-btn" id="fs-btn" aria-label="Full screen" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+        </button>
+        <button class="icon-btn" id="set-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M4 6h10M18 6h2M4 12h3M11 12h9M4 18h12"/><path d="M16 4v4M9 10v4M18 16v4"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <main class="pane" id="pane" tabindex="-1"></main>
+</div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-h"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* ================= constants ================= */
+const MIN = 60e3, HOUR = 60 * MIN, DAY = 24 * HOUR, WEEK = 7 * DAY;
+const REFRESH_MS = 2 * MIN;
+const PLATFORMS = [["pc","PC"],["ps4","PlayStation"],["xb1","Xbox"],["swi","Switch"]];
+const SCALES = [["0.85","S"],["1","M"],["1.15","L"],["1.3","XL"]];
+const apiUrl = p => `https://api.warframestat.us/${p}/?language=en`;
+const CDN = "https://cdn.warframestat.us/img/";
+const IN_APP = location.hostname === "appassets.androidplatform.net"; // running inside the Android app
+
+// Phase lengths in seconds. Used to roll a cycle forward when the API hands back an old one.
+const CYCLES = [
+  { key:"cetusCycle",   place:"Cetus",         scene:"PlainsOfEidolonLandscape.png",    phases:[["day","Day",6000],["night","Night",3000]] },
+  { key:"vallisCycle",  place:"Orb Vallis",    scene:"VallisLandscape.png",             phases:[["warm","Warm",400],["cold","Cold",1200]] },
+  { key:"cambionCycle", place:"Cambion Drift", scene:"DeimosCambionDriftLandscape.png", phases:[["fass","Fass",6000],["vome","Vome",3000]] },
+  { key:"zarimanCycle", place:"Zariman",       scene:"ZarParkHub.png",                  phases:[["corpus","Corpus",9000],["grineer","Grineer",9000]] },
+  { key:"earthCycle",   place:"Earth",         scene:"TeacherEarth.png",                phases:[["day","Day",14400],["night","Night",14400]] },
+  { key:"duviriCycle",  place:"Duviri",        scene:"DuviriMainlandTown.png",          phases:[["sorrow","Sorrow",7200],["fear","Fear",7200],["joy","Joy",7200],["anger","Anger",7200],["envy","Envy",7200]] },
+];
+const DIM_STATES = new Set(["night","cold","vome","sorrow","fear"]);
+const STATE_COLOR = { day:"--s-day", night:"--s-night", warm:"--s-warm", cold:"--s-cold", fass:"--s-fass", vome:"--s-vome",
+  corpus:"--s-corpus", grineer:"--s-grineer", joy:"--s-joy", anger:"--s-anger", envy:"--s-envy", sorrow:"--s-sorrow", fear:"--s-fear" };
+const TIERS = [
+  ["Lith","--t-lith",["RelicLithD.png"]],
+  ["Meso","--t-meso",["RelicMesoD.png"]],
+  ["Neo","--t-neo",["RelicNeoD.png"]],
+  ["Axi","--t-axi",["RelicAxiD.png"]],
+  ["Requiem","--t-requiem",["RelicImmortalD.png"]],
+  ["Omnia","--t-omnia",["RelicLithD.png","RelicAxiD.png"]],
+];
+const TIER = Object.fromEntries(TIERS.map(t => [t[0], { v:t[1], art:t[2] }]));
+const FAST = new Set(["Capture","Extermination","Sabotage","Rescue"]);
+const ART = { baro:"BaroKiteerAvatar.png", teshin:"VEDTeshin.png", nora:"NoraNightGlyphB.png", darvo:"BobbleheadDarvo.png", ducat:"Ducat.png", steel:"SteelEssence.png" };
+const ARCHON = { amar:["ArchonShardAmar.png","Crimson"], nira:["ArchonShardNira.png","Amber"], boreal:["ArchonShardBoreal.png","Azure"] };
+const PLANETS = {
+  mercury:["#ded6cb","#8f8476","#2c2620"], venus:["#ffe2a0","#cc983f","#4f320e"], earth:["#bfe9ff","#3f8ec2","#103248"],
+  lua:["#f1f1ec","#a9a9a2","#3f3f3b"], mars:["#ffb08a","#be5530","#43160a"], phobos:["#d8c3a9","#86705a","#30251b"],
+  deimos:["#f0a0a0","#93394d","#2f0d16"], ceres:["#cdd0d4","#71777e","#25282c"], jupiter:["#ffe6c0","#c88d5c","#4f331c"],
+  europa:["#f6fbff","#a9c6de","#38536b"], saturn:["#f8e8b6","#c3a466","#4f3d1b"], uranus:["#d3fffb","#5ec8cb","#18545a"],
+  neptune:["#b8caff","#4062d6","#131f57"], pluto:["#efe2d4","#a68c7a","#3d3028"], sedna:["#ffa092","#b8443b","#420f0c"],
+  eris:["#cdeea0","#5f9a3c","#1c3417"], "kuva fortress":["#ff8f7f","#a8201f","#330505"], void:["#fff4cf","#e2bb64","#5e420f"],
+  zariman:["#f4f7fa","#a9b8c6","#36424e"], duviri:["#ffd1e2","#b9658a","#3a1626"], veil:["#ddc9ff","#7d5bc9","#251a46"],
+  "dark refractory":["#f0a0a0","#93394d","#2f0d16"], "höllvania":["#c7f0c9","#5f9a7c","#1b3329"], hollvania:["#c7f0c9","#5f9a7c","#1b3329"],
+  _:["#d3dde7","#73869a","#243140"],
+};
+
+const ICONS = {
+  world:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-18 12 12)"/></svg>',
+  fissures:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"><path d="M12 2.5 21.5 12 12 21.5 2.5 12Z"/><path d="M12 5.5 10.4 10l3 2.2-2.2 6.3"/></svg>',
+  missions:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
+  nightwave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9c2.2-3 4.3-3 6.5 0s4.3 3 6.5 0 3.7-2.6 5-1"/><path d="M3 15c2.2-3 4.3-3 6.5 0s4.3 3 6.5 0 3.7-2.6 5-1"/></svg>',
+  vendors:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 16.5 12 12 16.5 7.5 12Z"/></svg>',
+};
+const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["nightwave","Nightwave"],["vendors","Vendors"]];
+const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 8.5 6.5 12 13 4.5"/></svg>';
+
+/* ================= storage (best effort) ================= */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+};
+const prefs = Object.assign({ platform:"pc", clock:"auto", scale:"1", tab:"world", fisMode:"normal", fisTiers:[], fisFast:false }, store.get("orbiter.prefs", {}));
+const savePrefs = () => store.set("orbiter.prefs", prefs);
+const applyScale = () => document.documentElement.style.setProperty("--ui-scale", prefs.scale);
+applyScale();
+let nwDone = store.get("orbiter.nwDone", {});
+
+/* ================= state ================= */
+const S = { data:null, fetchedAt:0, loading:false, error:null, timer:0 };
+(function loadCache(){
+  const c = store.get("orbiter.cache." + prefs.platform, null);
+  if (c && c.data) { S.data = c.data; S.fetchedAt = c.t || 0; }
+})();
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const ts = v => { const n = Date.parse(v); return Number.isFinite(n) ? n : NaN; };
+const pad = n => String(n).padStart(2, "0");
+function dur(ms){
+  if (!(ms > 0)) return "0s";
+  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  if (d) return `${d}d ${h}h`;
+  if (h) return `${h}h ${pad(m)}m`;
+  return `${m}m ${pad(sec)}s`;
+}
+function fmt(ms, withDay){
+  const o = { hour:"numeric", minute:"2-digit" };
+  if (withDay) o.weekday = "short";
+  if (prefs.clock !== "auto") o.hour12 = prefs.clock === "12";
+  return new Intl.DateTimeFormat(undefined, o).format(ms);
+}
+const clock = ms => fmt(ms, false);
+const when = ms => fmt(ms, ms - Date.now() >= 20 * HOUR);
+const cd = (end, cls = "") => `<span class="cd mono ${cls}" data-end="${end}">${dur(end - Date.now())}</span>`;
+const img = (file, cls = "", alt = "") => file
+  ? `<img class="${cls}" src="${CDN}${encodeURIComponent(file)}" alt="${esc(alt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : "";
+function factionKey(f){
+  const k = String(f || "").toLowerCase();
+  if (k.includes("grineer")) return "grineer"; if (k.includes("corpus")) return "corpus"; if (k.includes("infest")) return "infested";
+  if (k.includes("corrupt") || k.includes("orokin")) return "orokin"; if (k.includes("murmur") || k.includes("sentient")) return "murmur";
+  if (k.includes("narmer")) return "narmer"; if (k.includes("scaldra")) return "scaldra"; if (k.includes("techrot")) return "techrot";
+  return "";
+}
+const FACTION_ART = { grineer:"FactionGrineer.png", corpus:"FactionCorpus.png", infested:"FactionInfested.png", orokin:"FactionOrokin.png",
+  murmur:"FactionMurmur.png", narmer:"NarmerEyeGlyph.png", scaldra:"FactionScaldra.png", techrot:"FactionTechrot.png" };
+const factionImg = (f, cls = "faction") => img(FACTION_ART[factionKey(f)], cls, f || "");
+const factionVar = f => ({ grineer:"--fa-grineer", corpus:"--fa-corpus", infested:"--fa-infested" }[factionKey(f)] || "--fa-other");
+function planet(node){
+  const m = /\(([^)]+)\)\s*$/.exec(node || "");
+  const raw = m ? m[1] : "";
+  const key = raw.toLowerCase().replace(/\s+proxima$/, "").trim();
+  const c = PLANETS[key] || PLANETS._;
+  const cls = ["pl", key === "saturn" ? "ring" : "", key === "jupiter" ? "band" : "", /proxima/i.test(raw) ? "prox" : ""].filter(Boolean).join(" ");
+  return `<span class="${cls}" style="--p1:${c[0]};--p2:${c[1]};--p3:${c[2]}" aria-hidden="true"></span>`;
+}
+const nodeline = (node, extra = "") => `<span class="nodeline">${planet(node)}<span>${esc(node)}${extra}</span></span>`;
+const nextUtcMidnight = now => { const d = new Date(now); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1); };
+function rollForward(end, step, now){ if (!Number.isFinite(end)) return NaN; if (end > now) return end; return end + Math.ceil((now - end + 1) / step) * step; }
+function rewardParts(r){
+  if (!r) return [];
+  const parts = [];
+  (r.countedItems || []).forEach(c => parts.push({ name:c.type || c.key || "", text:(c.count > 1 ? c.count.toLocaleString() + "× " : "") + (c.type || c.key || "") }));
+  (r.items || []).forEach(x => { const n = typeof x === "string" ? x : (x && x.name) || ""; if (n) parts.push({ name:n, text:n }); });
+  if (r.credits) parts.push({ name:"", text:Number(r.credits).toLocaleString() + " cr" });
+  return parts;
+}
+const rewardText = r => rewardParts(r).map(p => p.text).filter(Boolean).join(", ") || (r && (r.asString || r.itemString)) || "";
+
+/* item art: a name -> image index, loaded only when a screen needs it */
+let ITEMS = null, itemsState = "idle";
+function needItems(){
+  if (itemsState !== "idle") return;
+  if (location.protocol === "file:") { itemsState = "none"; return; }
+  itemsState = "loading";
+  fetch("items.json").then(r => r.ok ? r.json() : null)
+    .then(j => { ITEMS = j || {}; itemsState = "ready"; render(); })
+    .catch(() => { itemsState = "none"; });
+}
+const PART = /\s+(barrel|receiver|stock|blade|blades|handle|hilt|link|grip|string|upper limb|lower limb|chassis|systems|neuroptics|harness|wings|carapace|cerebrum|guard|heatsink|gauntlet|ornament|pouch|stars|disc|boot|head|chain|band|buckle)$/;
+function itemFile(name){
+  if (!ITEMS || !name) return "";
+  const k = String(name).toLowerCase().replace(/<[^>]+>\s*/g, "").trim();
+  const base = k.replace(/^[\d,.]+x?\s+/, "").replace(/\s+blueprint$/, "");
+  for (const t of [k, base, base.replace(PART, ""), base.replace(/\s+relic$/, "")]) if (ITEMS[t]) return ITEMS[t];
+  return "";
+}
+const itemImg = (name, cls = "thumb") => img(itemFile(name), cls, name);
+
+/* ================= data shaping ================= */
+function slim(j){
+  const pick = (o, keys) => o ? Object.fromEntries(keys.filter(k => k in o).map(k => [k, o[k]])) : null;
+  const cyc = o => pick(o, ["state","activation","expiry"]);
+  return {
+    timestamp: j.timestamp,
+    cetusCycle: cyc(j.cetusCycle), vallisCycle: cyc(j.vallisCycle), cambionCycle: cyc(j.cambionCycle),
+    zarimanCycle: cyc(j.zarimanCycle), earthCycle: cyc(j.earthCycle), duviriCycle: cyc(j.duviriCycle),
+    fissures: (j.fissures || []).map(f => pick(f, ["id","node","missionType","enemy","tier","tierNum","expiry","isStorm","isHard"])),
+    sortie: pick(j.sortie, ["boss","faction","expiry","variants"]),
+    archonHunt: j.archonHunt ? { boss:j.archonHunt.boss, faction:j.archonHunt.faction, expiry:j.archonHunt.expiry,
+      missions:(j.archonHunt.missions || []).map(m => pick(m, ["node","type"])) } : null,
+    invasions: (j.invasions || []).filter(i => !i.completed).map(i => ({ id:i.id, node:i.node, desc:i.desc, completion:i.completion, vsInfestation:i.vsInfestation,
+      attacker:{ faction:i.attacker && i.attacker.faction, reward:i.attacker && i.attacker.reward },
+      defender:{ faction:i.defender && i.defender.faction, reward:i.defender && i.defender.reward } })),
+    voidTrader: pick(j.voidTrader, ["activation","expiry","location","inventory","character"]),
+    nightwave: j.nightwave ? { season:j.nightwave.season, expiry:j.nightwave.expiry,
+      activeChallenges:(j.nightwave.activeChallenges || []).map(c => pick(c, ["id","title","desc","reputation","isDaily","isElite","expiry"])) } : null,
+    steelPath: pick(j.steelPath, ["currentReward","rotation","expiry"]),
+    dailyDeals: (j.dailyDeals || []).map(d => pick(d, ["item","originalPrice","salePrice","discount","total","sold","expiry"])),
+    alerts: (j.alerts || []).map(a => ({ id:a.id, expiry:a.expiry, type:a.mission && a.mission.type, node:a.mission && a.mission.node,
+      faction:a.mission && a.mission.faction, reward:a.mission && a.mission.reward })),
+    events: (j.events || []).map(e => pick(e, ["id","description","node","expiry","tooltip"])),
+  };
+}
+
+function projectCycle(def, raw, now){
+  if (!raw || !raw.expiry) return null;
+  const n = def.phases.length;
+  let i = def.phases.findIndex(p => p[0] === String(raw.state || "").toLowerCase());
+  let end = ts(raw.expiry);
+  if (i < 0 || !Number.isFinite(end)) return null;
+  let projected = false;
+  if (end <= now) {
+    projected = true;
+    const period = def.phases.reduce((a, p) => a + p[2], 0) * 1000;
+    end += Math.floor((now - end) / period) * period;
+    let guard = 0;
+    while (end <= now && guard++ < 50) { i = (i + 1) % n; end += def.phases[i][2] * 1000; }
+  }
+  const cur = def.phases[i], nxt = def.phases[(i + 1) % n];
+  let start = end - cur[2] * 1000;
+  if (!projected) { const a = ts(raw.activation); if (Number.isFinite(a) && a < end) start = a; }
+  return { id:cur[0], label:cur[1], next:nxt[1], start, end, projected };
+}
+
+function teshin(sp, now){
+  if (!sp || !sp.currentReward) return null;
+  const rot = sp.rotation || [];
+  let idx = rot.findIndex(r => r.name === sp.currentReward.name);
+  let end = ts(sp.expiry), cur = sp.currentReward, rolled = false;
+  if (!Number.isFinite(end)) return null;
+  if (end <= now) {
+    const w = Math.ceil((now - end + 1) / WEEK);
+    end += w * WEEK; rolled = true;
+    if (idx >= 0 && rot.length) { idx = (idx + w) % rot.length; cur = rot[idx]; }
+  }
+  const next = idx >= 0 && rot.length ? rot[(idx + 1) % rot.length] : null;
+  return { cur, next, end, rolled };
+}
+const archonOf = boss => { const k = String(boss || "").toLowerCase(); return Object.keys(ARCHON).find(a => k.includes(a)); };
+
+/* ================= fetching ================= */
+async function load(){
+  if (S.loading) return;
+  S.loading = true; S.error = null; paintStatus();
+  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const r = await fetch(apiUrl(prefs.platform), { signal:ctrl.signal, cache:"no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    if (!j || typeof j !== "object") throw new Error("bad data");
+    S.data = slim(j); S.fetchedAt = Date.now();
+    store.set("orbiter.cache." + prefs.platform, { t:S.fetchedAt, data:S.data });
+  } catch (e) {
+    S.error = e && e.name === "AbortError" ? "The data service took too long to answer."
+      : navigator.onLine === false ? "No internet connection."
+      : "Couldn't reach the Warframe data service.";
+  } finally {
+    clearTimeout(to); S.loading = false;
+    schedule(S.error ? 30e3 : REFRESH_MS);
+    render();
+  }
+}
+function schedule(ms){ clearTimeout(S.timer); S.timer = setTimeout(() => { if (document.visibilityState === "visible") load(); else schedule(REFRESH_MS); }, ms); }
+
+/* ================= rendering ================= */
+function paintTabs(){
+  $("#tabs").innerHTML = TABS.map(([id, label]) =>
+    `<button class="tab" data-tab="${id}" ${prefs.tab === id ? 'aria-current="page"' : ""}>${ICONS[id]}<span>${label}</span></button>`).join("");
+}
+function paintStatus(){
+  const el = $("#status"), t = $("#status-t");
+  let s = "live", txt = "Live";
+  if (S.loading) { s = "loading"; txt = "Sync"; }
+  else if (S.error && !S.data) { s = "error"; txt = "Offline"; }
+  else if (S.fetchedAt) {
+    const age = Date.now() - S.fetchedAt;
+    txt = age < MIN ? "Live" : age < HOUR ? Math.floor(age / MIN) + "m ago" : Math.floor(age / HOUR) + "h ago";
+    if (S.error || age > 10 * MIN) s = "stale";
+  }
+  el.dataset.s = s; t.textContent = txt;
+  el.setAttribute("aria-label", S.fetchedAt ? `Updated ${new Date(S.fetchedAt).toLocaleTimeString()}. Tap to refresh.` : "Refresh data");
+}
+function notice(){
+  if (S.error && S.data) return `<div class="banner"><span>${esc(S.error)} Showing data from ${esc(when(S.fetchedAt))}.</span><button data-act="refresh">Retry</button></div>`;
+  return "";
+}
+function noData(){
+  if (S.loading || !S.error) return `<p class="empty">Loading world state…</p>`;
+  return `<div class="banner err"><span>${esc(S.error)} Check the connection, then retry.</span><button data-act="refresh">Retry</button></div>`;
+}
+const rotating = `<span class="pill old">Rotating</span>`;
+
+const VIEWS = {
+  world(d, now){
+    const tiles = CYCLES.map(def => {
+      const c = projectCycle(def, d[def.key], now);
+      if (!c) return `<article class="cycle frame" style="--state:var(--faint)">${img(def.scene, "scene")}<span class="place">${esc(def.place)}</span><span class="st">—</span><span class="next">No data</span></article>`;
+      const pct = Math.min(100, Math.max(0, (now - c.start) / (c.end - c.start) * 100));
+      const hint = def.key === "cetusCycle" && c.id === "night" ? img("SentientShardBrilliant.png", "hint", "Eidolons are out") : "";
+      return `<article class="cycle frame" style="--state:var(${STATE_COLOR[c.id] || "--text"})" data-cycle-end="${c.end}" ${DIM_STATES.has(c.id) ? "data-dim" : ""}>
+        ${img(def.scene, "scene")}
+        ${c.projected ? '<span class="est" title="Estimated: rolled forward from the cycle length because the API returned an older cycle">≈</span>' : ""}
+        <span class="place"><span>${esc(def.place)}</span>${hint}</span>
+        <span class="st">${esc(c.label)}</span>
+        ${cd(c.end)}
+        <span class="next">${esc(c.next)} at ${esc(clock(c.end))}</span>
+        <div class="bar"><i data-start="${c.start}" data-stop="${c.end}" style="width:${pct.toFixed(1)}%"></i></div>
+      </article>`;
+    }).join("");
+
+    const resets = [["Daily reset", nextUtcMidnight(now), ""]];
+    if (d.sortie && d.sortie.expiry) resets.push(["Sortie", rollForward(ts(d.sortie.expiry), DAY, now), factionImg(d.sortie.faction, "")]);
+    if (d.archonHunt && d.archonHunt.expiry) {
+      const a = ARCHON[archonOf(d.archonHunt.boss)];
+      resets.push(["Archon Hunt", rollForward(ts(d.archonHunt.expiry), WEEK, now), a ? img(a[0], "", a[1] + " Archon Shard") : ""]);
+    }
+    const vt = d.voidTrader;
+    if (vt) {
+      const a = ts(vt.activation), e = ts(vt.expiry);
+      if (now < a) resets.push(["Baro arrives", a, img(ART.baro, "", "Baro Ki'Teer")]);
+      else if (now < e) resets.push(["Baro leaves", e, img(ART.baro, "", "Baro Ki'Teer")]);
+    }
+    const resetHtml = resets.filter(r => Number.isFinite(r[1])).map(([l, t, ic]) =>
+      `<div class="reset frame" data-cycle-end="${t}"><span class="ic">${ic}<span class="gem"></span></span>
+        <div class="rt"><span class="lbl">${esc(l)}</span><span class="rline">${cd(t)}<span class="when">${esc(when(t))}</span></span></div></div>`).join("");
+
+    return `<div class="view world">${notice()}
+      <section class="cycles" aria-label="Open world cycles">${tiles}</section>
+      <section class="resets" aria-label="Upcoming resets">${resetHtml}</section>
+    </div>`;
+  },
+
+  fissures(d, now){
+    const all = (d.fissures || []).filter(f => ts(f.expiry) > now);
+    const modeOf = f => f.isStorm ? "storm" : f.isHard ? "hard" : "normal";
+    const counts = { normal:0, hard:0, storm:0 }; all.forEach(f => counts[modeOf(f)]++);
+    const inMode = all.filter(f => modeOf(f) === prefs.fisMode);
+    const tierCount = {}; inMode.forEach(f => tierCount[f.tier] = (tierCount[f.tier] || 0) + 1);
+    const sel = new Set(prefs.fisTiers);
+    const list = inMode
+      .filter(f => !sel.size || sel.has(f.tier))
+      .filter(f => !prefs.fisFast || FAST.has(f.missionType))
+      .sort((a, b) => (a.tierNum || 9) - (b.tierNum || 9) || ts(a.expiry) - ts(b.expiry));
+    const seg = [["normal","Normal"],["hard","Steel Path"],["storm","Storms"]].map(([id, l]) =>
+      `<button data-fmode="${id}" aria-pressed="${prefs.fisMode === id}">${l} <span class="n">${counts[id]}</span></button>`).join("");
+    const chips = TIERS.map(([t, v, art]) =>
+      `<button class="chip" style="--tier:var(${v})" data-ftier="${t}" aria-pressed="${sel.has(t)}" ${tierCount[t] ? "" : "disabled"}>${img(art[art.length - 1], "", "")}${t} <span class="n">${tierCount[t] || 0}</span></button>`).join("")
+      + `<button class="chip" data-ffast aria-pressed="${prefs.fisFast}" title="Capture, Extermination, Sabotage, Rescue"><span class="gem"></span>Fast</button>`;
+    const rows = list.map(f => {
+      const t = TIER[f.tier] || { v:"--text", art:[] };
+      return `<li class="row fis" style="--tier:var(${t.v})">
+        <span class="relic"><span class="art"><span class="gem"></span>${t.art.map(a => img(a, "", "")).join("")}</span><b>${esc(f.tier === "Requiem" ? "Req" : f.tier)}</b></span>
+        <div class="main"><span class="t">${esc(f.missionType)}${FAST.has(f.missionType) ? '<span class="fast">fast</span>' : ""}</span>
+          <span class="s nodeline">${planet(f.node)}<span>${esc(f.node)}</span>${factionImg(f.enemy)}</span></div>
+        ${cd(ts(f.expiry))}
+      </li>`;
+    }).join("");
+    return `<div class="toolbar"><div class="seg" role="group" aria-label="Fissure type">${seg}</div><div class="chips" role="group" aria-label="Relic tier">${chips}</div></div>
+      <div class="view">${notice()}${rows ? `<ul class="rows frame">${rows}</ul>` : `<p class="empty">No fissures match these filters right now.</p>`}</div>`;
+  },
+
+  missions(d, now){
+    needItems();
+    const out = [];
+    const s = d.sortie;
+    if (s && s.variants && s.variants.length) {
+      const end = ts(s.expiry), old = !(end > now);
+      out.push(`<section class="card frame">
+        <div class="card-head"><span class="portrait contain">${factionImg(s.faction, "")}</span>
+          <div><div class="sec-h"><h2>Sortie</h2><span class="meta">${old ? rotating : "Ends in " + cd(end)}</span></div>
+          <div class="sub">${esc(s.boss)} · ${esc(s.faction)}</div></div></div>
+        <ul class="rows">${s.variants.map((v, i) => `<li class="row row-2"><span class="idx"><span>${i + 1}</span></span>
+          <div class="main"><span class="t">${esc(v.missionType)}</span><span class="s">${nodeline(v.node)}</span><span class="s wrap mod">${esc(v.modifier)}</span></div></li>`).join("")}</ul>
+      </section>`);
+    }
+    const a = d.archonHunt;
+    if (a && a.missions && a.missions.length) {
+      const end = ts(a.expiry), old = !(end > now);
+      const shard = ARCHON[archonOf(a.boss)];
+      out.push(`<section class="card frame">
+        <div class="card-head"><span class="portrait contain">${shard ? img(shard[0], "", shard[1] + " Archon Shard") : factionImg(a.faction, "")}</span>
+          <div><div class="sec-h"><h2>Archon Hunt</h2><span class="meta">${old ? rotating : "Ends in " + cd(end)}</span></div>
+          <div class="sub">${esc(a.boss)}${shard ? ` · ${shard[1]} shard` : ""}</div></div></div>
+        <ul class="rows">${a.missions.map((m, i) => `<li class="row row-2"><span class="idx"><span>${i + 1}</span></span>
+          <div class="main"><span class="t">${esc(m.type)}</span><span class="s">${nodeline(m.node)}</span></div></li>`).join("")}</ul>
+      </section>`);
+    }
+    const top = out.length ? `<div class="two">${out.join("")}</div>` : "";
+
+    const side = (sd, reward, right) => {
+      const parts = rewardParts(reward), first = parts.find(p => p.name);
+      return `<div class="side${right ? " r" : ""}">${first ? itemImg(first.name) : ""}<div>
+        <em style="color:var(${factionVar(sd.faction)})">${factionImg(sd.faction)}${esc(sd.faction)}</em>
+        <span>${esc(parts.map(p => p.text).join(", ") || "No reward")}</span></div></div>`;
+    };
+    const inv = (d.invasions || []);
+    const invHtml = inv.length ? `<section class="frame" style="padding:.55rem 0 .2rem">
+      <div class="sec-h" style="padding-inline:.6rem"><h2>Invasions</h2><span class="meta">${inv.length} active</span></div>
+      ${inv.map(i => {
+        const p = Math.min(100, Math.max(0, Number(i.completion) || 0));
+        const av = factionVar(i.attacker.faction), dv = factionVar(i.defender.faction);
+        return `<div class="inv">
+          <div class="inv-top"><span class="t">${nodeline(i.node)}</span><span class="mono">${p.toFixed(0)}%</span></div>
+          <div class="tug" aria-hidden="true"><i style="width:${p}%;background:var(${av})"></i><i style="flex:1;background:var(${dv});opacity:.55"></i></div>
+          <div class="inv-sides">${side(i.attacker, i.vsInfestation ? null : i.attacker.reward, false)}${side(i.defender, i.defender.reward, true)}</div>
+        </div>`;
+      }).join("")}</section>` : "";
+
+    const alerts = (d.alerts || []).filter(x => ts(x.expiry) > now);
+    const events = (d.events || []).filter(x => ts(x.expiry) > now);
+    const extra = (alerts.length || events.length) ? `<section class="frame" style="padding:.55rem 0 .2rem">
+      <div class="sec-h" style="padding-inline:.6rem"><h2>Alerts &amp; events</h2></div>
+      <ul class="rows">
+        ${alerts.map(x => { const first = rewardParts(x.reward).find(p => p.name);
+          return `<li class="row">${first && itemFile(first.name) ? itemImg(first.name) : '<span class="idx"><span>!</span></span>'}
+          <div class="main"><span class="t">${esc(x.type)}</span><span class="s">${nodeline(x.node)}</span><span class="s wrap" style="color:var(--gold)">${esc(rewardText(x.reward) || "Reward not listed")}</span></div>${cd(ts(x.expiry))}</li>`; }).join("")}
+        ${events.map(x => `<li class="row"><span class="idx"><span>◆</span></span>
+          <div class="main"><span class="t">${esc(x.description)}</span><span class="s">${x.node ? nodeline(x.node) : esc(x.tooltip || "")}</span></div>${cd(ts(x.expiry))}</li>`).join("")}
+      </ul></section>` : "";
+
+    const body = top + invHtml + extra;
+    return `<div class="view">${notice()}${body || `<p class="empty">No missions in the current data.</p>`}</div>`;
+  },
+
+  nightwave(d, now){
+    const nw = d.nightwave;
+    if (!nw || !(nw.activeChallenges || []).length) return `<div class="view">${notice()}<p class="empty">No Nightwave season is running right now.</p></div>`;
+    const list = nw.activeChallenges.filter(c => ts(c.expiry) > now);
+    const groups = [
+      ["Daily", list.filter(c => c.isDaily)],
+      ["Weekly", list.filter(c => !c.isDaily && !c.isElite)],
+      ["Elite weekly", list.filter(c => c.isElite)],
+    ];
+    const left = list.filter(c => !nwDone[c.id]).reduce((a, c) => a + (Number(c.reputation) || 0), 0);
+    const doneCount = list.filter(c => nwDone[c.id]).length;
+    const seasonEnd = ts(nw.expiry);
+    const rows = groups.filter(g => g[1].length).map(([name, cs]) => `<section class="frame" style="padding:.55rem 0 .15rem">
+      <div class="sec-h" style="padding-inline:.6rem"><h2>${name}</h2><span class="meta">resets ${esc(when(Math.min(...cs.map(c => ts(c.expiry)))))}</span></div>
+      <div>${cs.map(c => `<button class="nw-row" data-nw="${esc(c.id)}" aria-pressed="${!!nwDone[c.id]}">
+          <span class="check">${CHECK}</span>
+          <span class="main"><span class="t">${esc(c.title)}</span><span class="s">${esc(c.desc)}</span></span>
+          <span class="rep">${Number(c.reputation || 0).toLocaleString()}<small>standing</small></span>
+        </button>`).join("")}</div></section>`).join("");
+    return `<div class="view">${notice()}
+      <div class="card frame">
+        <div class="card-head"><span class="portrait">${img(ART.nora, "", "Nora Night")}</span>
+          <div><div class="sec-h"><h2>Nightwave${nw.season != null ? " · S" + esc(nw.season) : ""}</h2>${Number.isFinite(seasonEnd) && seasonEnd > now ? `<span class="meta">ends ${esc(new Date(seasonEnd).toLocaleDateString(undefined,{month:"short",day:"numeric"}))}</span>` : ""}</div>
+          <div class="tally">
+            <div><span class="lbl">Standing left</span><b>${left.toLocaleString()}</b></div>
+            <div><span class="lbl">Done</span><b>${doneCount}/${list.length}</b></div>
+          </div></div></div>
+        <p class="fine">Tap a challenge to tick it off. Ticks are saved on this device.</p>
+      </div>
+      ${rows}</div>`;
+  },
+
+  vendors(d, now){
+    needItems();
+    const parts = [];
+    const vt = d.voidTrader;
+    if (vt) {
+      const a = ts(vt.activation), e = ts(vt.expiry);
+      const here = now >= a && now < e;
+      const inv = vt.inventory || [];
+      const status = here ? `<span class="pill here">Here now</span>` : now < a ? `<span class="pill away">Away</span>` : `<span class="pill old">Waiting for update</span>`;
+      parts.push(`<section class="card frame">
+        <div class="card-head"><span class="portrait">${img(ART.baro, "", "Baro Ki'Teer")}</span>
+          <div><div class="sec-h"><h2>Baro Ki'Teer</h2>${status}</div>
+          <div class="big">${nodeline(vt.location || "Unknown relay")}</div>
+          <div class="sub">${here ? `Leaves in ${cd(e)} · ${esc(when(e))}` : now < a ? `Arrives in ${cd(a)} · ${esc(when(a))}` : "Next visit not announced yet"}</div></div></div>
+        ${here && inv.length ? `<ul class="rows">${inv.map(it => `<li class="row">${itemImg(it.item) || '<span class="thumb"></span>'}
+            <div class="main"><span class="t">${esc(it.item)}</span></div>
+            <span class="price"><span class="duc">${img(ART.ducat, "", "Ducats")}${Number(it.ducats || 0).toLocaleString()}</span><span class="cr">${Number(it.credits || 0).toLocaleString()} cr</span></span></li>`).join("")}</ul>` : ""}
+      </section>`);
+    }
+    const t = teshin(d.steelPath, now);
+    if (t) parts.push(`<section class="card frame">
+        <div class="card-head"><span class="portrait">${img(ART.teshin, "", "Teshin")}</span>
+          <div><div class="sec-h"><h2>Teshin</h2><span class="meta">rotates in ${cd(t.end)}</span></div>
+          <div class="sub">Steel Path Honors${t.rolled ? " · estimated from the rotation" : ""}</div></div></div>
+        <div class="reward">${itemImg(t.cur.name, "")}<div><div class="big">${esc(t.cur.name)}</div>
+          <div class="costline">${img(ART.steel, "", "Steel Essence")}<span class="mono">${esc(t.cur.cost)}</span> Steel Essence</div></div></div>
+        ${t.next ? `<div class="sub">Next week: <span style="color:var(--text)">${esc(t.next.name)}</span> · <span class="mono">${esc(t.next.cost)}</span> SE</div>` : ""}
+      </section>`);
+    const deal = (d.dailyDeals || []).find(x => ts(x.expiry) > now);
+    if (deal) {
+      const sold = Number(deal.sold) || 0, total = Number(deal.total) || 0;
+      parts.push(`<section class="card frame">
+        <div class="card-head"><span class="portrait contain">${img(ART.darvo, "", "Darvo")}</span>
+          <div><div class="sec-h"><h2>Darvo's deal</h2><span class="meta">ends in ${cd(ts(deal.expiry))}</span></div>
+          <div class="sub">${esc(deal.discount)}% off${total ? ` · ${(total - sold).toLocaleString()} of ${total.toLocaleString()} left` : ""}</div></div></div>
+        <div class="reward">${itemImg(deal.item, "")}<div><div class="big">${esc(deal.item)}</div>
+          <div class="costline"><span class="mono" style="color:var(--gold)">${esc(deal.salePrice)}p</span> <s class="mono">${esc(deal.originalPrice)}p</s></div></div></div>
+        ${total ? `<div class="stock" aria-hidden="true"><i style="width:${Math.max(0, Math.min(100, (total - sold) / total * 100))}%"></i></div>` : ""}
+      </section>`);
+    }
+    return `<div class="view">${notice()}${parts.length ? `<div class="two">${parts.join("")}</div>` : `<p class="empty">No vendor data right now.</p>`}</div>`;
+  },
+};
+
+function render(){
+  paintStatus();
+  const pane = $("#pane");
+  const now = Date.now();
+  const top = pane.scrollTop;
+  pane.innerHTML = S.data ? VIEWS[prefs.tab](S.data, now) : `<div class="view">${noData()}</div>`;
+  pane.scrollTop = top;
+}
+
+/* broken images hide themselves; the designed fallback behind them stays */
+document.addEventListener("error", e => { const t = e.target; if (t && t.tagName === "IMG") t.classList.add("broken"); }, true);
+
+/* ================= ticking ================= */
+function tick(){
+  if (document.visibilityState !== "visible") return;
+  const now = Date.now();
+  let rerender = false;
+  document.querySelectorAll("[data-end]").forEach(el => {
+    const end = +el.dataset.end;
+    if (end <= now) rerender = true;
+    el.textContent = dur(end - now);
+  });
+  document.querySelectorAll("[data-cycle-end]").forEach(el => { if (+el.dataset.cycleEnd <= now) rerender = true; });
+  document.querySelectorAll("[data-start]").forEach(el => {
+    const a = +el.dataset.start, b = +el.dataset.stop;
+    el.style.width = Math.min(100, Math.max(0, (now - a) / (b - a) * 100)).toFixed(1) + "%";
+  });
+  if (rerender) render(); else paintStatus();
+}
+
+/* ================= star-chart backdrop ================= */
+function paintSky(){
+  const c = $("#sky"), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = c.clientWidth, h = c.clientHeight;
+  c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  const g = c.getContext("2d"); g.scale(dpr, dpr);
+  g.fillStyle = "#03050a"; g.fillRect(0, 0, w, h);
+  const neb = (x, y, r, col) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(3,5,10,0)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); };
+  neb(w * .85, h * .1, Math.max(w, h) * .55, "rgba(40,90,140,.22)");
+  neb(w * .15, h * .95, Math.max(w, h) * .5, "rgba(120,70,30,.14)");
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const n = Math.round(w * h / 2600);
+  for (let i = 0; i < n; i++) {
+    const x = rnd() * w, y = rnd() * h, r = rnd() < .92 ? .5 + rnd() * .5 : 1 + rnd() * .7;
+    g.globalAlpha = .25 + rnd() * .6; g.fillStyle = rnd() < .15 ? "#ffe2a8" : "#cfe6ff";
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  g.globalAlpha = 1;
+}
+
+/* ================= install ================= */
+let installEvt = null;
+const isInstalled = () => IN_APP || matchMedia("(display-mode: fullscreen), (display-mode: standalone), (display-mode: minimal-ui)").matches;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; $("#install-btn").hidden = false; if (!$("#sheet").hidden) openSettings(); });
+window.addEventListener("appinstalled", () => { installEvt = null; $("#install-btn").hidden = true; store.set("orbiter.installed", true); if (!$("#sheet").hidden) openSettings(); });
+async function promptInstall(){
+  if (!installEvt) { openSettings(); return; }
+  const e = installEvt; installEvt = null; $("#install-btn").hidden = true;
+  try { await e.prompt(); const r = await e.userChoice; if (r && r.outcome === "dismissed") { /* Chrome fires the event again later */ } } catch (err) {}
+  if (!$("#sheet").hidden) openSettings();
+}
+function installSection(){
+  if (IN_APP) return `<p class="fine">Running as the Android app. Long-press its icon and choose Bottom Screen to keep it there.</p>`;
+  if (isInstalled()) return `<p class="fine">Running as an installed app.</p>`;
+  if (installEvt) return `<button class="btn solid" data-act="install">Install Orbiter Panel</button>
+    <p class="fine">Adds an Orbiter icon you can pin to the bottom screen. It opens full screen, without Chrome's bars.</p>`;
+  if (location.protocol === "file:") return `<p class="fine">Chrome only offers to install apps that open from a web address, and this copy is a file on the device. Host the folder (the README has free GitHub Pages steps), open that address in Chrome, and the Install button appears here.</p>`;
+  if (location.protocol !== "https:" && !/^(localhost|127\.)/.test(location.hostname)) return `<p class="fine">Chrome needs a secure (https) address before it will install this app.</p>`;
+  return `<ol class="steps">
+      <li>Tap around the app and leave it open for about 30 seconds. Chrome waits for that before offering to install.</li>
+      <li>An Install button then appears here and on the left bar.</li>
+      <li>Or open Chrome's <b>⋮</b> menu now and choose <b>Install app</b> or <b>Add to Home screen</b>.</li>
+    </ol>`;
+}
+
+/* ================= settings ================= */
+function openSettings(){
+  const sh = $("#sheet");
+  const keepFocus = sh.hidden;
+  sh.innerHTML = `<div class="sheet-body frame">
+    <h2 id="sheet-h">Settings</h2>
+    <div class="field"><span class="lbl">Text size</span>
+      <div class="seg">${SCALES.map(([v, l]) => `<button data-scale="${v}" aria-pressed="${prefs.scale === v}">${l}</button>`).join("")}</div></div>
+    <div class="field"><span class="lbl">Install</span>${installSection()}</div>
+    <div class="field"><span class="lbl">Platform world state</span>
+      <div class="seg">${PLATFORMS.map(([id, l]) => `<button data-plat="${id}" aria-pressed="${prefs.platform === id}">${l}</button>`).join("")}</div>
+      <p class="fine">Leave this on PC unless your fissures or sortie don't match what you see in game.</p></div>
+    <div class="field"><span class="lbl">Clock</span>
+      <div class="seg">${[["auto","Device"],["12","12-hour"],["24","24-hour"]].map(([id, l]) => `<button data-clock="${id}" aria-pressed="${prefs.clock === id}">${l}</button>`).join("")}</div></div>
+    <p class="fine">Data from the community-run warframestat.us API, refreshed every 2 minutes. Game images are Digital Extremes' art, shown under the Warframe Content Policy. Not affiliated with Digital Extremes.</p>
+    <button class="btn" data-act="close">Done</button>
+  </div>`;
+  sh.hidden = false;
+  if (keepFocus) sh.querySelector("[data-act=close]").focus();
+}
+function closeSettings(){ $("#sheet").hidden = true; $("#set-btn").focus(); }
+
+/* ================= events ================= */
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) { if (e.target.id === "sheet") closeSettings(); return; }
+  if (b.dataset.tab) {
+    prefs.tab = b.dataset.tab; savePrefs(); paintTabs();
+    $("#pane").scrollTop = 0; render(); return;
+  }
+  if (b.id === "status" || b.dataset.act === "refresh") { load(); return; }
+  if (b.id === "set-btn") { openSettings(); return; }
+  if (b.id === "install-btn" || b.dataset.act === "install") { promptInstall(); return; }
+  if (b.id === "fs-btn") {
+    const d = document;
+    if (d.fullscreenElement) d.exitFullscreen().catch(() => {});
+    else d.documentElement.requestFullscreen({ navigationUI:"hide" }).catch(() => {});
+    return;
+  }
+  if (b.dataset.act === "close") { closeSettings(); return; }
+  if (b.dataset.scale) { prefs.scale = b.dataset.scale; savePrefs(); applyScale(); openSettings(); return; }
+  if (b.dataset.plat) {
+    if (prefs.platform !== b.dataset.plat) {
+      prefs.platform = b.dataset.plat; savePrefs();
+      const c = store.get("orbiter.cache." + prefs.platform, null);
+      S.data = c && c.data || null; S.fetchedAt = c && c.t || 0;
+      load();
+    }
+    openSettings(); return;
+  }
+  if (b.dataset.clock) { prefs.clock = b.dataset.clock; savePrefs(); openSettings(); render(); return; }
+  if (b.dataset.fmode) { prefs.fisMode = b.dataset.fmode; prefs.fisTiers = []; savePrefs(); render(); return; }
+  if (b.dataset.ftier) {
+    const t = b.dataset.ftier, s = new Set(prefs.fisTiers);
+    s.has(t) ? s.delete(t) : s.add(t); prefs.fisTiers = [...s]; savePrefs(); render(); return;
+  }
+  if ("ffast" in b.dataset) { prefs.fisFast = !prefs.fisFast; savePrefs(); render(); return; }
+  if (b.dataset.nw) {
+    const id = b.dataset.nw;
+    if (nwDone[id]) delete nwDone[id]; else nwDone[id] = Date.now();
+    const live = new Set(((S.data && S.data.nightwave && S.data.nightwave.activeChallenges) || []).map(c => c.id));
+    Object.keys(nwDone).forEach(k => { if (!live.has(k)) delete nwDone[k]; });
+    store.set("orbiter.nwDone", nwDone); render(); return;
+  }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSettings(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - S.fetchedAt > MIN) load();
+});
+window.addEventListener("online", () => load());
+let skyT = 0; window.addEventListener("resize", () => { clearTimeout(skyT); skyT = setTimeout(paintSky, 150); });
+
+/* ================= boot ================= */
+if (document.fullscreenEnabled && !isInstalled()) $("#fs-btn").hidden = false;
+paintSky();
+paintTabs();
+render();
+load();
+setInterval(tick, 1000);
+if (!IN_APP && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.application'
+}
+
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+
+android {
+    namespace 'com.orbiterpanel.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.orbiterpanel.app'
+        minSdk 26
+        targetSdk 34
+        versionCode runNumber
+        versionName "1.${runNumber}"
+    }
+
+    // A fixed key committed to the repo so every build can install over the last one.
+    // It only identifies this personal app; it is not a secret.
+    signingConfigs {
+        shared {
+            storeFile file('orbiter.keystore')
+            storePassword 'orbiterpanel'
+            keyAlias 'orbiter'
+            keyPassword 'orbiterpanel'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.shared
+        }
+    }
+
+    // The web app in /web is bundled as the APK's assets.
+    sourceSets {
+        main {
+            assets.srcDirs = ['../web']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
