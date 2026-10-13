@@ -16,8 +16,6 @@ import android.webkit.WebViewClient;
 
 import androidx.webkit.WebViewAssetLoader;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -37,6 +35,7 @@ public class MainActivity extends Activity {
     private static final String MARKET_HOST = "api.warframe.market";
 
     private WebView web;
+    private volatile String userAgent;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -50,6 +49,7 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
+        try { userAgent = s.getUserAgentString(); } catch (Exception ignored) { }
         web.addJavascriptInterface(new Updater(this, web), "OrbiterApp");
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
@@ -85,30 +85,41 @@ public class MainActivity extends Activity {
         hideSystemBars();
     }
 
-    /** Runs on the WebView's background thread, so blocking network calls are fine here. */
+    /**
+     * Runs on the WebView's background thread, so blocking network calls are fine here.
+     * Only a clean 2xx answer is handed back. Anything else (an error page, a redirect, a block,
+     * no connection) returns null, so the WebView retries the request with its own network stack.
+     */
     private WebResourceResponse fetchData(String url, boolean market) {
+        HttpURLConnection c = null;
         try {
-            HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+            c = (HttpURLConnection) new URL(url).openConnection();
+            c.setInstanceFollowRedirects(true);
             c.setConnectTimeout(12000);
-            c.setReadTimeout(15000);
+            c.setReadTimeout(20000);
             c.setRequestProperty("Accept", "application/json");
-            c.setRequestProperty("User-Agent", "OrbiterPanel/1.0 (Android companion app)");
+            // Look like the WebView itself; some hosts block unknown app identities.
+            if (userAgent != null) c.setRequestProperty("User-Agent", userAgent);
             if (market) {
                 c.setRequestProperty("Platform", "pc");
                 c.setRequestProperty("Language", "en");
                 c.setRequestProperty("Crossplay", "true");
             }
             int code = c.getResponseCode();
-            InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
-            if (in == null) in = new ByteArrayInputStream(new byte[0]);
+            if (code < 200 || code > 299) {
+                c.disconnect();
+                return null;
+            }
+            InputStream in = c.getInputStream();
             String reason = c.getResponseMessage();
-            if (reason == null || reason.trim().isEmpty()) reason = code >= 400 ? "Error" : "OK";
+            if (reason == null || reason.trim().isEmpty()) reason = "OK";
             Map<String, String> headers = new HashMap<>();
             headers.put("Access-Control-Allow-Origin", "*");
             headers.put("Cache-Control", "no-store");
             return new WebResourceResponse("application/json", "utf-8", code, reason, headers, in);
-        } catch (IOException e) {
-            return null; // let the WebView try the request itself; the page shows its offline message
+        } catch (Exception e) {
+            if (c != null) c.disconnect();
+            return null;
         }
     }
 
