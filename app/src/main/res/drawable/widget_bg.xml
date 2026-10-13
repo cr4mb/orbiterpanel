@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget background. Its opacity is set per widget (Transparency setting). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FF060A12" />
+    <corners android:radius="16dp" />
+</shape>

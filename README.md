@@ -32,14 +32,24 @@
 - Today's sortie with modifiers, this week's Archon Hunt and the shard it awards
 - Invasions with each side's rewards and progress, plus alerts and events
 
-**Nightwave and vendors**
+**Weekly**
+- A weekly and daily checklist that clears itself at each reset: Archon Hunt, Icebind Cryobells, Deep and Temporal Archimedea, Descendia, both Circuits, Netracells, Kahl's Garrison, Steel Path Honors, sortie and more
+- Live details where the game publishes them: this week's Archimedea missions, deviations and risks, Circuit choices, Descendia floors and the Archon's shard
+- Icebind reference: the modes and binds a Cryobell can roll (Cryobells are rolled per player, so they aren't in the public data)
 - Nightwave challenges you can tick off, with the standing you have left
+
+**Vendors**
 - Baro Ki'Teer's location and stock, Teshin's Steel Path rotation and Darvo's daily deal
 
 **Search**
 - Every item in the game, tradable or not, with pictures as you type
 - Live warframe.market prices: lowest sell, highest buy, and the online sellers and buyers, with a one-tap copy of the trade whisper
 - Drop sources with drop chances, relic refinement chances, relic contents, and where resources are found
+
+**Home screen widgets**
+- Open-world cycles, one big cycle, resets or fissures, each widget with its own settings
+- Adjustable transparency (fully clear to solid), hairline frame, text size and accent color
+- Countdowns tick live; the widgets refresh in the background about every 30 minutes
 
 **Made for the Thor's bottom screen**
 - Text and layout scale to fill the small square screen, with an adjustable text size

@@ -57,6 +57,25 @@ public class Updater {
         return p.versionCode;
     }
 
+    /** The page sends a small world-state snapshot after each refresh; widgets draw from it. */
+    @JavascriptInterface
+    public void saveWidgetSnapshot(String json) {
+        try {
+            WidgetData.saveSnapshot(activity, new JSONObject(json));
+            OrbiterWidget.updateAll(activity);
+        } catch (Exception ignored) { }
+    }
+
+    /** Tab a widget asked to open, read once by the page at start-up. */
+    @JavascriptInterface
+    public String startTab() {
+        String t = pendingTab;
+        pendingTab = null;
+        return t == null ? "" : t;
+    }
+
+    volatile String pendingTab;
+
     @JavascriptInterface
     public void checkForUpdate() {
         new Thread(() -> {

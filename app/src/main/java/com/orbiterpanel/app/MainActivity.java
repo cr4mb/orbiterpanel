@@ -36,7 +36,18 @@ public class MainActivity extends Activity {
     private static final String DE_HOST = "api.warframe.com"; // Digital Extremes' official world state feed
 
     private WebView web;
+    private Updater bridge;
     private volatile String userAgent;
+
+    /** A widget tap while the app is already open: switch the page to that widget's tab. */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String tab = intent == null ? null : intent.getStringExtra("tab");
+        if (tab != null && web != null && tab.matches("[a-z]+")) {
+            web.evaluateJavascript("window.__orbiterOpenTab && window.__orbiterOpenTab('" + tab + "')", null);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle state) {
@@ -51,7 +62,9 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
         try { userAgent = s.getUserAgentString(); } catch (Exception ignored) { }
-        web.addJavascriptInterface(new Updater(this, web), "OrbiterApp");
+        bridge = new Updater(this, web);
+        bridge.pendingTab = getIntent() == null ? null : getIntent().getStringExtra("tab");
+        web.addJavascriptInterface(bridge, "OrbiterApp");
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))

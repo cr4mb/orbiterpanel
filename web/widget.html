@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Widget settings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Rajdhani:wght@600;700&family=Saira+Semi+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Same look as the app: navy panels, hairline frames, gold accents. Committed dark. */
+:root{
+  color-scheme:dark;
+  --space:#03050a; --panel:rgba(11,17,27,.86); --edge:rgba(150,190,220,.2); --text:#ecf2f7; --muted:#a2b3c2; --faint:#63738a;
+  --gold:#e2bb64; --gold-wash:rgba(226,187,100,.15); --void:#82e4ff;
+  --f-head:"Rajdhani","Saira Semi Condensed","Roboto Condensed",sans-serif;
+  --f-body:"Saira Semi Condensed","Roboto Condensed",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:clamp(14px, 1.6vw + 8px, 18px);background:var(--space)}
+body{margin:0;min-height:100%;background:var(--space);color:var(--text);font-family:var(--f-body);-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:46rem;margin:0 auto;padding:max(.8rem, env(safe-area-inset-top,0px)) 1rem calc(5.5rem + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:1rem}
+h1{margin:0;font-family:var(--f-head);font-weight:700;font-size:1.25rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:.5rem}
+h1::before{content:"";width:.5rem;height:.5rem;background:currentColor;transform:rotate(45deg)}
+.lbl{font-family:var(--f-head);font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:.45rem}
+.fine{margin:0;font-size:.85rem;color:var(--muted)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--edge);background:var(--panel)}
+.seg button{min-height:2.6rem;font-family:var(--f-head);font-weight:700;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 .3rem}
+.seg button+button{border-left:1px solid var(--edge)}
+.seg button[aria-pressed="true"]{background:var(--gold-wash);color:var(--gold);box-shadow:inset 0 -2px 0 var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{min-height:2.4rem;padding:0 .7rem;border:1px solid var(--edge);background:var(--panel);font-family:var(--f-head);font-weight:700;font-size:.92rem;letter-spacing:.04em;color:var(--muted);display:inline-flex;align-items:center;gap:.4rem}
+.chip i{width:.55rem;height:.55rem;transform:rotate(45deg);background:var(--c,var(--void))}
+.chip[aria-pressed="true"]{border-color:var(--c,var(--gold));color:var(--text);box-shadow:inset 0 0 .8rem color-mix(in srgb,var(--c,var(--gold)) 22%,transparent)}
+.chip .ord{font-family:var(--f-num);font-size:.72rem;color:var(--gold)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media (max-width:30rem){ .row2{grid-template-columns:1fr} }
+.slider{display:flex;align-items:center;gap:.8rem}
+input[type=range]{flex:1;accent-color:var(--gold);height:2rem}
+.val{font-family:var(--f-num);font-size:.95rem;min-width:3.4rem;text-align:right}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:2.6rem;padding:0 .7rem;border:1px solid var(--edge);background:var(--panel);text-align:left;width:100%}
+.toggle .sw{width:2.6rem;height:1.4rem;border:1px solid var(--faint);position:relative;flex:none}
+.toggle .sw::after{content:"";position:absolute;top:.2rem;left:.2rem;width:.9rem;height:.9rem;background:var(--faint);transition:transform .2s ease}
+.toggle[aria-pressed="true"] .sw{border-color:var(--gold)}
+.toggle[aria-pressed="true"] .sw::after{background:var(--gold);transform:translateX(1.2rem)}
+.stepper{display:flex;align-items:center;border:1px solid var(--edge);background:var(--panel);width:max-content}
+.stepper button{width:2.8rem;height:2.6rem;font-family:var(--f-head);font-weight:700;font-size:1.3rem;color:var(--gold)}
+.stepper span{min-width:2.4rem;text-align:center;font-family:var(--f-num)}
+
+/* preview: a fake wallpaper so transparency is visible */
+.stage{position:relative;border:1px solid var(--edge);padding:1.4rem;display:grid;place-items:center;overflow:hidden;min-height:12rem;
+  background:radial-gradient(60% 80% at 15% 20%,#3a6b8f,transparent 70%),radial-gradient(60% 80% at 85% 85%,#8f5a3a,transparent 70%),linear-gradient(135deg,#1b2a3a,#2e1d2b)}
+.stage::before{content:"Preview on a wallpaper";position:absolute;top:.4rem;left:.6rem;font-family:var(--f-head);font-weight:700;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.wg{position:relative;width:min(19rem,100%);border-radius:16px;padding:.6rem .8rem .55rem;font-family:"Roboto Condensed","Saira Semi Condensed",sans-serif;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.wg .bg{position:absolute;inset:0;border-radius:16px;background:#060a12}
+.wg .fr{position:absolute;inset:0;border-radius:16px;border:1px solid rgba(150,190,220,.33)}
+.wg > *:not(.bg):not(.fr){position:relative}
+.wg .tt{font-weight:700;letter-spacing:.14em;font-size:calc(.68rem * var(--s));margin-bottom:.15rem}
+.wg .r{display:flex;align-items:center;gap:.45rem;padding:.18rem 0}
+.wg .d{font-size:calc(.58rem * var(--s))}
+.wg .m{flex:1;min-width:0}
+.wg .l{font-weight:700;font-size:calc(.86rem * var(--s));color:#f2f6fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wg .sb{font-size:calc(.68rem * var(--s));color:#b4c2cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wg .tm{font-family:ui-monospace,monospace;font-size:calc(.9rem * var(--s));color:#f2f6fa}
+.wg.single .st{font-weight:700;font-size:calc(1.65rem * var(--s));line-height:1.1}
+.wg.single .tm{font-size:calc(1.15rem * var(--s))}
+
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:.6rem;justify-content:flex-end;padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(3,5,10,.96) 35%)}
+.btn{min-height:2.8rem;padding:0 1.3rem;border:1px solid var(--gold);color:var(--gold);font-family:var(--f-head);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.95rem;background:rgba(3,5,10,.8)}
+.btn.solid{background:var(--gold);color:var(--space)}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Widget settings</h1>
+  <div class="stage" id="stage"></div>
+
+  <div class="field"><span class="lbl">Show</span>
+    <div class="seg" id="type"></div></div>
+
+  <div class="field" id="f-cycles"><span class="lbl">Open worlds, in this order</span><div class="chips" id="cycles"></div>
+    <p class="fine">Tap to add or remove. They appear in the order you pick them.</p></div>
+  <div class="field" id="f-single"><span class="lbl">Open world</span><div class="chips" id="single"></div></div>
+  <div class="field" id="f-resets"><span class="lbl">Countdowns, in this order</span><div class="chips" id="resets"></div></div>
+  <div id="f-fis" class="field" style="gap:.8rem">
+    <div class="field"><span class="lbl">Fissures</span><div class="seg" id="fismode"></div></div>
+    <div class="field"><span class="lbl">Relic tiers (none = all)</span><div class="chips" id="tiers"></div></div>
+    <button class="toggle" id="fast"><span>Fast missions only <span class="fine">(Capture, Extermination, Sabotage, Rescue)</span></span><span class="sw"></span></button>
+  </div>
+  <div class="field" id="f-rows"><span class="lbl">Most rows</span>
+    <div class="stepper"><button id="rows-dec" aria-label="Fewer rows">−</button><span id="rows-v">4</span><button id="rows-inc" aria-label="More rows">+</button></div>
+    <p class="fine">A smaller widget shows fewer rows automatically.</p></div>
+
+  <div class="field"><span class="lbl">Background</span>
+    <div class="slider"><span class="fine">Clear</span><input type="range" id="bg" min="0" max="100" step="5" aria-label="Background opacity"><span class="fine">Solid</span><span class="val" id="bg-v"></span></div></div>
+  <div class="row2">
+    <div class="field"><span class="lbl">Text size</span><div class="seg" id="size"></div></div>
+    <div class="field"><span class="lbl">Accent</span><div class="seg" id="accent"></div></div>
+  </div>
+  <button class="toggle" id="frame"><span>Hairline frame</span><span class="sw"></span></button>
+  <button class="toggle" id="title"><span>Title line</span><span class="sw"></span></button>
+</div>
+<div class="bar"><button class="btn" id="cancel">Cancel</button><button class="btn solid" id="save">Save widget</button></div>
+
+<script>
+(() => {
+"use strict";
+const B = window.OrbiterWidget || null;
+const $ = s => document.querySelector(s);
+const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const CYC = [["cetusCycle","Cetus","#ffd27a"],["vallisCycle","Orb Vallis","#ffa45e"],["cambionCycle","Cambion Drift","#6ee0cf"],["zarimanCycle","Zariman","#7cb6ff"],["earthCycle","Earth","#a6b0ff"],["duviriCycle","Duviri","#ffdd66"]];
+const PH = { cetusCycle:[["day","Day",6000],["night","Night",3000]], vallisCycle:[["warm","Warm",400],["cold","Cold",1200]], cambionCycle:[["fass","Fass",6000],["vome","Vome",3000]],
+  zarimanCycle:[["corpus","Corpus",9000],["grineer","Grineer",9000]], earthCycle:[["day","Day",14400],["night","Night",14400]],
+  duviriCycle:[["sorrow","Sorrow",7200],["fear","Fear",7200],["joy","Joy",7200],["anger","Anger",7200],["envy","Envy",7200]] };
+const SC = { day:"#ffd27a", night:"#a6b0ff", warm:"#ffa45e", cold:"#9fdcff", fass:"#ff8a5c", vome:"#6ee0cf", corpus:"#7cb6ff", grineer:"#f07b55", joy:"#ffdd66", anger:"#ff6555", envy:"#90de74", sorrow:"#86a3ee", fear:"#c592ea" };
+const RES = [["daily","Daily reset"],["weekly","Weekly reset"],["sortie","Sortie"],["archon","Archon Hunt"],["baro","Baro Ki'Teer"]];
+const TIERS = [["Lith","#d39b68"],["Meso","#c3cbd4"],["Neo","#e6cd80"],["Axi","#f4eedb"],["Requiem","#ef5b52"],["Omnia","#c39cff"]];
+const ACC = { gold:"#e2bb64", void:"#82e4ff", white:"#ffffff" };
+const SIZE = { s:.86, m:1, l:1.2 };
+
+let cfg; try { cfg = JSON.parse(B ? B.config() : "null"); } catch (e) { cfg = null; }
+cfg = Object.assign({ type:"cycles", cycles:["cetusCycle","vallisCycle","cambionCycle","zarimanCycle"], single:"cetusCycle",
+  resets:["daily","weekly","sortie","archon","baro"], fisMode:"normal", fisTiers:[], fisFast:false, rows:4, bg:40, frame:true, size:"m", accent:"gold", title:true }, cfg || {});
+let snap = null; try { const s = B ? B.snapshot() : ""; snap = s ? JSON.parse(s) : null; } catch (e) {}
+
+function seg(el, opts, key){
+  $(el).innerHTML = opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${cfg[key] === v}">${esc(l)}</button>`).join("");
+  $(el).onclick = e => { const b = e.target.closest("button"); if (!b) return; cfg[key] = b.dataset.v; paint(); };
+}
+function orderedChips(el, opts, key, colors){
+  const sel = cfg[key];
+  $(el).innerHTML = opts.map(([v, l, c]) => { const i = sel.indexOf(v);
+    return `<button class="chip" data-v="${v}" aria-pressed="${i >= 0}" style="--c:${c || colors || "var(--gold)"}"><i></i>${esc(l)}${i >= 0 ? `<span class="ord">${i + 1}</span>` : ""}</button>`; }).join("");
+  $(el).onclick = e => { const b = e.target.closest("button"); if (!b) return; const v = b.dataset.v, i = cfg[key].indexOf(v);
+    if (i >= 0) cfg[key].splice(i, 1); else cfg[key].push(v); paint(); };
+}
+function toggle(el, key){ $(el).setAttribute("aria-pressed", String(!!cfg[key])); $(el).onclick = () => { cfg[key] = !cfg[key]; paint(); }; }
+
+// ---------- preview, drawn from the app's latest data (or examples before the app has loaded any) ----------
+const pad = n => String(n).padStart(2, "0");
+const clockStr = ms => new Date(ms).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
+function timer(ms){
+  if (ms <= 0) return "";
+  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  if (ms >= 36e6) return d ? `${d}d ${h}h` : `${h}h ${pad(m)}m`;
+  return h ? `${h}:${pad(m)}:${pad(x)}` : `${pad(m)}:${pad(x)}`;
+}
+function cycleNow(key, now){
+  const phases = PH[key];
+  let c = snap && snap.cycles && snap.cycles[key];
+  if (!c) { // example: pretend each cycle is partway through
+    const total = phases.reduce((a, p) => a + p[2], 0) * 1000, off = (CYC.findIndex(x => x[0] === key) + 1) * 977e3;
+    c = { state:phases[0][0], end:now - (now % total) + phases[0][2] * 1000 + off };
+  }
+  let i = phases.findIndex(p => p[0] === c.state), end = c.end; if (i < 0) i = 0;
+  let g = 0; while (end <= now && g++ < 60) { i = (i + 1) % phases.length; end += phases[i][2] * 1000; }
+  return { id:phases[i][0], label:phases[i][1], next:phases[(i + 1) % phases.length][1], end };
+}
+function nextDaily(now){ const d = new Date(now); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1); }
+function nextWeekly(now){ const d = new Date(now); const k = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - k + 7); }
+function rows(now){
+  const out = [];
+  if (cfg.type === "cycles") cfg.cycles.forEach(k => { const c = cycleNow(k, now), n = CYC.find(x => x[0] === k)[1];
+    out.push([SC[c.id], n, `${c.label}  →  ${c.next} ${clockStr(c.end)}`, c.end - now]); });
+  if (cfg.type === "resets") cfg.resets.forEach(k => {
+    const ex = { sortie:now + 7.3e6 + 3.6e7, archon:now + 4.2e8, baro:now + 3.1e8 };
+    let end = k === "daily" ? nextDaily(now) : k === "weekly" ? nextWeekly(now) : 0, sub = "";
+    if (k === "sortie") end = snap && snap.sortieEnd > now ? snap.sortieEnd : ex.sortie;
+    if (k === "archon") { end = snap && snap.archonEnd > now ? snap.archonEnd : ex.archon; sub = (snap && snap.archonBoss) || "Archon Nira"; }
+    if (k === "baro") { end = snap && snap.baroStart > now ? snap.baroStart : ex.baro; sub = (snap && snap.baroLoc) || "Orcus Relay (Pluto)"; }
+    out.push([ACC[cfg.accent], RES.find(x => x[0] === k)[1].replace("Baro Ki'Teer", "Baro arrives"), sub || clockStr(end), end - now]); });
+  if (cfg.type === "fissures") {
+    let list = snap && snap.fissures ? snap.fissures.filter(f => f.end > now) : [
+      { tier:"Lith", n:1, type:"Capture", node:"Hepit (Void)", end:now + 5.4e5 }, { tier:"Meso", n:2, type:"Extermination", node:"Gabii (Ceres)", end:now + 1.3e6 },
+      { tier:"Neo", n:3, type:"Sabotage", node:"Kappa (Sedna)", end:now + 7.7e5 }, { tier:"Axi", n:4, type:"Rescue", node:"Kala-azar (Eris)", end:now + 1.6e6 },
+      { tier:"Requiem", n:5, type:"Survival", node:"Taveuni (Kuva Fortress)", end:now + 2.8e6 }];
+    const FAST = ["Capture","Extermination","Sabotage","Rescue"];
+    list = list.filter(f => cfg.fisMode === "all" || (f.storm ? "storm" : f.hard ? "hard" : "normal") === cfg.fisMode || !snap)
+      .filter(f => !cfg.fisTiers.length || cfg.fisTiers.includes(f.tier)).filter(f => !cfg.fisFast || FAST.includes(f.type))
+      .sort((a, b) => a.n - b.n || a.end - b.end);
+    list.forEach(f => out.push([TIERS.find(t => t[0] === f.tier) ? TIERS.find(t => t[0] === f.tier)[1] : "#fff", `${f.tier === "Requiem" ? "Req" : f.tier}  ${f.type}`, f.node, f.end - now]));
+  }
+  return out.slice(0, cfg.rows);
+}
+function preview(){
+  const now = Date.now(), s = SIZE[cfg.size] || 1, a = ACC[cfg.accent] || ACC.gold;
+  const shell = inner => `<div class="wg${cfg.type === "single" ? " single" : ""}" style="--s:${s}"><div class="bg" style="opacity:${cfg.bg / 100}"></div>${cfg.frame ? '<div class="fr"></div>' : ""}${inner}</div>`;
+  if (cfg.type === "single") {
+    const c = cycleNow(cfg.single, now), n = CYC.find(x => x[0] === cfg.single)[1];
+    $("#stage").innerHTML = shell(`<div class="tt" style="color:${a}">${esc(n.toUpperCase())}</div><div class="st" style="color:${SC[c.id]}">${esc(c.label)}</div>
+      <div class="tm">${timer(c.end - now)}</div><div class="sb">${esc(c.next)} at ${clockStr(c.end)}</div>`);
+    return;
+  }
+  const title = { cycles:"OPEN WORLDS", resets:"RESETS", fissures:cfg.fisMode === "hard" ? "STEEL PATH FISSURES" : cfg.fisMode === "storm" ? "VOID STORMS" : "FISSURES" }[cfg.type];
+  const r = rows(now);
+  $("#stage").innerHTML = shell(`${cfg.title ? `<div class="tt" style="color:${a}">${title}</div>` : ""}${r.length ? r.map(([c, l, sb, left]) =>
+    `<div class="r"><span class="d" style="color:${c}">◆</span><div class="m"><div class="l">${esc(l)}</div>${sb ? `<div class="sb">${esc(sb)}</div>` : ""}</div><span class="tm">${timer(left)}</span></div>`).join("")
+    : `<div class="r"><div class="m"><div class="l">Nothing to show</div><div class="sb">Pick at least one item above</div></div></div>`}`);
+}
+
+function paint(){
+  seg("#type", [["cycles","Open worlds"],["single","One world"],["resets","Resets"],["fissures","Fissures"]], "type");
+  orderedChips("#cycles", CYC, "cycles");
+  $("#single").innerHTML = CYC.map(([v, l, c]) => `<button class="chip" data-v="${v}" aria-pressed="${cfg.single === v}" style="--c:${c}"><i></i>${esc(l)}</button>`).join("");
+  $("#single").onclick = e => { const b = e.target.closest("button"); if (b) { cfg.single = b.dataset.v; paint(); } };
+  orderedChips("#resets", RES, "resets");
+  seg("#fismode", [["normal","Normal"],["hard","Steel Path"],["storm","Storms"],["all","All"]], "fisMode");
+  $("#tiers").innerHTML = TIERS.map(([v, c]) => `<button class="chip" data-v="${v}" aria-pressed="${cfg.fisTiers.includes(v)}" style="--c:${c}"><i></i>${v}</button>`).join("");
+  $("#tiers").onclick = e => { const b = e.target.closest("button"); if (!b) return; const i = cfg.fisTiers.indexOf(b.dataset.v); if (i >= 0) cfg.fisTiers.splice(i, 1); else cfg.fisTiers.push(b.dataset.v); paint(); };
+  toggle("#fast", "fisFast"); toggle("#frame", "frame"); toggle("#title", "title");
+  seg("#size", [["s","S"],["m","M"],["l","L"]], "size");
+  seg("#accent", [["gold","Gold"],["void","Void"],["white","White"]], "accent");
+  $("#f-cycles").hidden = cfg.type !== "cycles"; $("#f-single").hidden = cfg.type !== "single";
+  $("#f-resets").hidden = cfg.type !== "resets"; $("#f-fis").hidden = cfg.type !== "fissures";
+  $("#f-rows").hidden = cfg.type === "single"; $("#title").hidden = cfg.type === "single";
+  $("#rows-v").textContent = cfg.rows;
+  $("#bg").value = cfg.bg; $("#bg-v").textContent = cfg.bg === 0 ? "Clear" : cfg.bg + "%";
+  preview();
+}
+$("#bg").addEventListener("input", e => { cfg.bg = +e.target.value; $("#bg-v").textContent = cfg.bg === 0 ? "Clear" : cfg.bg + "%"; preview(); });
+$("#rows-dec").onclick = () => { cfg.rows = Math.max(1, cfg.rows - 1); paint(); };
+$("#rows-inc").onclick = () => { cfg.rows = Math.min(8, cfg.rows + 1); paint(); };
+$("#cancel").onclick = () => { if (B) B.cancel(); };
+$("#save").onclick = () => { if (B) B.save(JSON.stringify(cfg)); };
+paint();
+setInterval(preview, 1000);
+})();
+</script>
+</body>
+</html>

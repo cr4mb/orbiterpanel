@@ -277,6 +277,55 @@ img:not(.broken) + .gem{display:none}
 .steps{margin:0;padding-left:1.2rem;font-size:.86rem;color:var(--muted);display:flex;flex-direction:column;gap:.2rem}
 .steps b{color:var(--text)}
 
+/* ---------- weekly ---------- */
+.wk-head .summary b{font-size:1.2rem}
+.wk-head .when{font-size:.74rem;color:var(--muted)}
+.wk-tools{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.wk-sec{padding:.55rem 0 .15rem}
+.wk-sec > .sec-h{padding-inline:.6rem}
+.wk-row{display:grid;grid-template-columns:minmax(0,1fr) auto;border-bottom:1px solid var(--edge)}
+.wk-row:last-child{border-bottom:0}
+.wk-main{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:.6rem;align-items:center;padding:.5rem .5rem;text-align:left;width:100%;min-width:0}
+.wk-main .main{min-width:0;display:flex;flex-direction:column}
+.wk-main .t{font-family:var(--f-head);font-weight:700;font-size:1.08rem;line-height:1.15}
+.wk-main .s{font-size:.84rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-row.done .t,.wk-row.done .s{color:var(--faint)}
+.wk-row.done .t{text-decoration:line-through;text-decoration-color:var(--faint)}
+.wk-mark{display:grid;place-items:center;width:2.7rem;flex:none}
+.wk-mark.multi{display:flex;flex-direction:column;align-items:center;gap:.15rem}
+.wk-main[aria-pressed="true"] .check{background:var(--gold);border-color:var(--gold)}
+.pips{display:flex;gap:.22rem;padding:.12rem}
+.pips i{width:.42rem;height:.42rem;transform:rotate(45deg);border:1px solid var(--muted)}
+.pips i.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 .3rem var(--gold-wash)}
+.cnt{font-size:.72rem;color:var(--muted)}
+.wk-ic{width:2rem;height:2rem;display:grid;place-items:center}
+.wk-art{width:100%;height:100%;object-fit:contain}
+.wk-gem{width:.75rem;height:.75rem;transform:rotate(45deg);background:var(--g,var(--void));box-shadow:0 0 .55rem var(--g,var(--void))}
+.wk-gem.ice{--g:#a9e8ff}.wk-gem.deep{--g:#5fb3ff}.wk-gem.temporal{--g:#c39cff}.wk-gem.desc{--g:#ef5b52}.wk-gem.circ{--g:#ffdd66}
+.wk-gem.spc{--g:#ff8a5c}.wk-gem.net{--g:#6ee0cf}.wk-gem.kahl{--g:#90de74}.wk-gem.riv{--g:#c592ea}.wk-gem.shard{--g:#e2bb64}
+.wk-more{width:2.6rem;display:grid;place-items:center;color:var(--muted);border-left:1px solid var(--edge)}
+.wk-more svg{width:1.05rem;height:1.05rem;transition:transform .25s ease}
+.wk-more[aria-expanded="true"]{color:var(--gold)}
+.wk-more[aria-expanded="true"] svg{transform:rotate(180deg)}
+.wk-detail{grid-column:1/-1;padding:.1rem .7rem .7rem 3.2rem;display:flex;flex-direction:column;gap:.45rem}
+.wk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.3rem;font-size:.88rem}
+.wk-list b{font-family:var(--f-head);font-weight:700;font-size:.98rem}
+.wk-list span{color:var(--muted)}
+.wk-mission{display:flex;flex-direction:column;gap:.3rem;padding-bottom:.3rem;border-bottom:1px solid var(--edge)}
+.wk-mission:last-of-type{border-bottom:0}
+.wk-mission .t{display:flex;align-items:center;gap:.55rem;font-family:var(--f-head);font-weight:700;font-size:1.02rem}
+.wk-mission .idx{width:1.4rem;height:1.4rem;font-size:.72rem}
+.wk-tag{font-size:.84rem;padding:.25rem .45rem;border-left:2px solid var(--edge);display:flex;flex-direction:column}
+.wk-tag b{font-family:var(--f-head);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.wk-tag span{color:var(--muted);font-size:.8rem}
+.wk-tag.dev{border-color:var(--void)}.wk-tag.dev b{color:var(--void)}
+.wk-tag.hard{border-color:var(--bad)}.wk-tag.hard b{color:var(--bad)}
+.chip.static{cursor:default;min-height:1.9rem;font-size:.8rem}
+.eye{width:1.6rem;height:1.6rem;border:1px solid var(--faint);display:grid;place-items:center}
+.eye.on{border-color:var(--gold);background:var(--gold-wash)}
+.eye.on::after{content:"";width:.5rem;height:.5rem;background:var(--gold);transform:rotate(45deg)}
+.wk-row.editing .wk-main{grid-template-columns:auto auto minmax(0,1fr)}
+
 /* ---------- search ---------- */
 .sbox{display:flex;align-items:center;gap:.45rem;border:1px solid var(--edge);background:rgba(11,17,27,.85);padding:0 .25rem 0 .6rem;min-height:2.8rem;transition:border-color .2s ease, box-shadow .2s ease}
 .sbox:focus-within{border-color:var(--gold);box-shadow:0 0 .8rem rgba(226,187,100,.18)}
@@ -420,7 +469,8 @@ const ICONS = {
   vendors:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 16.5 12 12 16.5 7.5 12Z"/></svg>',
 };
 ICONS.search = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5.5 5.5"/><path d="M10.5 7.5v6M7.5 10.5h6" stroke-width="1.2"/></svg>';
-const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["nightwave","Nightwave"],["vendors","Vendors"],["search","Search"]];
+ICONS.weekly = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><rect x="4" y="5" width="16" height="15"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/><path d="m8.5 14.5 2.2 2.2 4.8-4.8"/></svg>';
+const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["weekly","Weekly"],["vendors","Vendors"],["search","Search"]];
 const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 8.5 6.5 12 13 4.5"/></svg>';
 
 /* ================= storage (best effort) ================= */
@@ -537,7 +587,14 @@ function slim(j){
   return {
     timestamp: j.timestamp,
     cetusCycle: cyc(j.cetusCycle), vallisCycle: cyc(j.vallisCycle), cambionCycle: cyc(j.cambionCycle),
-    zarimanCycle: cyc(j.zarimanCycle), earthCycle: cyc(j.earthCycle), duviriCycle: cyc(j.duviriCycle),
+    zarimanCycle: cyc(j.zarimanCycle), earthCycle: cyc(j.earthCycle),
+    duviriCycle: j.duviriCycle ? Object.assign(cyc(j.duviriCycle), { choices:(j.duviriCycle.choices || []).map(c => ({ category:c.category, choices:c.choices || [] })) }) : null,
+    archimedeas: (j.archimedeas || []).map(a => ({ type:a.type, typeKey:a.typeKey, expiry:a.expiry,
+      missions:(a.missions || []).map(m => ({ missionType:m.missionType, faction:m.faction,
+        deviation:m.deviation ? { name:m.deviation.name, description:m.deviation.description } : null,
+        risks:(m.risks || []).map(r => ({ name:r.name, description:r.description, isHard:!!r.isHard })) })),
+      personalModifiers:(a.personalModifiers || []).map(p => ({ name:p.name, description:p.description })) })),
+    descendia: j.descendia ? { expiry:j.descendia.expiry, challenges:(j.descendia.challenges || []).map(c => ({ index:c.index, type:c.type, challenge:c.challenge, level:c.level })) } : null,
     fissures: (j.fissures || []).map(f => pick(f, ["id","node","missionType","enemy","tier","tierNum","expiry","isStorm","isHard"])),
     sortie: pick(j.sortie, ["boss","faction","expiry","variants"]),
     archonHunt: j.archonHunt ? { boss:j.archonHunt.boss, faction:j.archonHunt.faction, expiry:j.archonHunt.expiry,
@@ -593,6 +650,24 @@ function teshin(sp, now){
 const archonOf = boss => { const k = String(boss || "").toLowerCase(); return Object.keys(ARCHON).find(a => k.includes(a)); };
 
 /* ================= fetching ================= */
+/* Home screen widgets (Android app only) draw from this snapshot of the latest data. */
+function pushWidgetSnapshot(){
+  const app = IN_APP && window.OrbiterApp;
+  if (!app || !app.saveWidgetSnapshot || !S.data) return;
+  try {
+    const d = S.data, now = Date.now(), cycles = {};
+    CYCLES.forEach(def => { const c = projectCycle(def, d[def.key], now); if (c) cycles[def.key] = { state:c.id, end:c.end }; });
+    const t = x => { const n = ts(x); return Number.isFinite(n) ? n : 0; };
+    const vt = d.voidTrader || {};
+    app.saveWidgetSnapshot(JSON.stringify({
+      t:S.fetchedAt || now, cycles,
+      sortieEnd:t(d.sortie && d.sortie.expiry), archonEnd:t(d.archonHunt && d.archonHunt.expiry), archonBoss:(d.archonHunt && d.archonHunt.boss) || "",
+      baroStart:t(vt.activation), baroEnd:t(vt.expiry), baroLoc:vt.location || "",
+      fissures:(d.fissures || []).map(f => ({ tier:f.tier, n:f.tierNum || 9, type:f.missionType, node:f.node, enemy:f.enemy, end:t(f.expiry), storm:!!f.isStorm, hard:!!f.isHard })),
+    }));
+  } catch (e) {}
+}
+
 // The official-feed parser (~860 KB) is only loaded the first time warframestat.us fails.
 let parserP = null;
 function loadParser(){
@@ -634,6 +709,7 @@ async function load(){
       if (!j || typeof j !== "object" || Array.isArray(j) || !j.timestamp) throw Object.assign(new Error("bad data"), { code:"unexpected data" });
       S.data = slim(j); S.fetchedAt = Date.now(); S.fetchedOk = true; S.lastReason = ""; S.source = src.kind;
       store.set("orbiter.cache." + prefs.platform, { t:S.fetchedAt, data:S.data });
+      pushWidgetSnapshot();
     } catch (e) {
       reason = e && e.name === "AbortError" ? "timed out" : (e && e.code) || "network error";
       if (!firstReason) firstReason = reason;
@@ -812,9 +888,11 @@ const VIEWS = {
     return `<div class="view">${notice()}${body || `<p class="empty">No missions in the current data.</p>`}</div>`;
   },
 
+  weekly(d, now){ return weeklyView(d, now); },
+
   nightwave(d, now){
     const nw = d.nightwave;
-    if (!nw || !(nw.activeChallenges || []).length) return `<div class="view">${notice()}<p class="empty">No Nightwave season is running right now.</p></div>`;
+    if (!nw || !(nw.activeChallenges || []).length) return `<p class="empty">No Nightwave season is running right now.</p>`;
     const list = nw.activeChallenges.filter(c => ts(c.expiry) > now);
     const groups = [
       ["Daily", list.filter(c => c.isDaily)],
@@ -831,8 +909,8 @@ const VIEWS = {
           <span class="main"><span class="t">${esc(c.title)}</span><span class="s">${esc(c.desc)}</span></span>
           <span class="rep">${Number(c.reputation || 0).toLocaleString()}<small>standing</small></span>
         </button>`).join("")}</div></section>`).join("");
-    return `<div class="view">${notice()}
-      <div class="card frame">
+    return `
+      <div class="card frame" id="nightwave">
         <div class="card-head"><span class="portrait">${img(ART.nora, "", "Nora Night")}</span>
           <div><div class="sec-h"><h2>Nightwave${nw.season != null ? " · S" + esc(nw.season) : ""}</h2>${Number.isFinite(seasonEnd) && seasonEnd > now ? `<span class="meta">ends ${esc(new Date(seasonEnd).toLocaleDateString(undefined,{month:"short",day:"numeric"}))}</span>` : ""}</div>
           <div class="tally">
@@ -841,7 +919,7 @@ const VIEWS = {
           </div></div></div>
         <p class="fine">Tap a challenge to tick it off. Ticks are saved on this device.</p>
       </div>
-      ${rows}</div>`;
+      ${rows}`;
   },
 
   vendors(d, now){
@@ -887,6 +965,134 @@ const VIEWS = {
     return `<div class="view">${notice()}${parts.length ? `<div class="two">${parts.join("")}</div>` : `<p class="empty">No vendor data right now.</p>`}</div>`;
   },
 };
+
+/* ================= weekly checklist ================= */
+// Warframe's weekly reset is Monday 00:00 UTC; the daily reset is 00:00 UTC.
+const weekStart = now => { const d = new Date(now); const day = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day); };
+const dayStart = now => { const d = new Date(now); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); };
+const ICEBIND = {
+  modes:["Survival (10 min)","Mobile Defense (3 terminals)","Excavation (600 Cryotic)","Disruption (8 conduits)"],
+  mission:["Entropic Overload","Stone Soldiers","Miasmic Militia","Thin Boundary","Inferno"],
+  tactical:["Antimatter Foes","Archaic Armor","Bruised Shields","Bolstered Belligerents","Clumsy Munitions","Cumulonimbus","Entanglement","Heavy Warfare","Jade Spirits","Kela's Revenge","Myopic Munitions","Parasitic Light","Postmortal Surges","Toasty Toes"],
+};
+const archFor = (d, word) => (d.archimedeas || []).find(a => new RegExp(word, "i").test((a.typeKey || "") + " " + (a.type || "")));
+const choicesFor = (d, cat) => { const c = ((d.duviriCycle && d.duviriCycle.choices) || []).find(x => x.category === cat); return c ? c.choices : []; };
+function archDetail(a){
+  if (!a) return "";
+  const pm = (a.personalModifiers || []).length ? `<div class="sub-h">Personal modifiers</div><ul class="wk-list">${a.personalModifiers.map(p => `<li><b>${esc(p.name)}</b>${p.description ? ` <span>${esc(p.description)}</span>` : ""}</li>`).join("")}</ul>` : "";
+  return `${(a.missions || []).map((m, i) => `<div class="wk-mission"><div class="t"><span class="idx"><span>${i + 1}</span></span>${esc(m.missionType)}${m.faction ? ` <span class="s">· ${esc(m.faction)}</span>` : ""}</div>
+      ${m.deviation ? `<div class="wk-tag dev"><b>Deviation</b> ${esc(m.deviation.name)}${m.deviation.description ? `<span>${esc(m.deviation.description)}</span>` : ""}</div>` : ""}
+      ${(m.risks || []).map(r => `<div class="wk-tag${r.isHard ? " hard" : ""}"><b>${r.isHard ? "Elite risk" : "Risk"}</b> ${esc(r.name)}${r.description ? `<span>${esc(r.description)}</span>` : ""}</div>`).join("")}
+    </div>`).join("")}${pm}`;
+}
+// Each item: id, group (week/day), title, sub(d) one-line summary, max (counter), detail(d) expandable html, art, def (shown by default)
+const WEEKLY_ITEMS = [
+  { id:"archon", group:"week", def:true, title:"Archon Hunt", art:d => { const a = ARCHON[archonOf(d.archonHunt && d.archonHunt.boss)]; return a ? img(a[0], "wk-art", "") : ""; },
+    sub:d => d.archonHunt ? `${d.archonHunt.boss}${ARCHON[archonOf(d.archonHunt.boss)] ? " · " + ARCHON[archonOf(d.archonHunt.boss)][1] + " shard" : ""}` : "Weekly Archon Shard",
+    detail:d => d.archonHunt && (d.archonHunt.missions || []).length ? `<ul class="wk-list">${d.archonHunt.missions.map((m, i) => `<li><b>${i + 1}. ${esc(m.type)}</b> <span>${esc(m.node)}</span></li>`).join("")}</ul>` : "" },
+  { id:"icebind", group:"week", def:true, max:3, unit:"Cryobells", title:"Icebind", art:() => '<span class="wk-gem ice"></span>',
+    sub:() => "Up to 3 rewarded runs · Yuvan Peak, Earth",
+    detail:() => `<p class="fine">Each Cryobell rolls its own mode, planet, faction and binds, so they aren't in the game's public data. Here's what can come up:</p>
+      <div class="sub-h">Modes</div><div class="recents">${ICEBIND.modes.map(x => `<span class="chip static">${esc(x)}</span>`).join("")}</div>
+      <div class="sub-h">Mission binds</div><div class="recents">${ICEBIND.mission.map(x => `<span class="chip static">${esc(x)}</span>`).join("")}</div>
+      <div class="sub-h">Tactical binds</div><div class="recents">${ICEBIND.tactical.map(x => `<span class="chip static">${esc(x)}</span>`).join("")}</div>
+      <p class="fine">Plus one personal bind on your own Cryobell. Crested Frozen Chest: Riven Splicer, Kuva, and a bonus such as an Archon Shard or Omni Forma.</p>` },
+  { id:"deep", group:"week", def:true, title:"Deep Archimedea", art:() => '<span class="wk-gem deep"></span>',
+    sub:d => { const a = archFor(d, "deep"); return a ? (a.missions || []).map(m => m.missionType).join(" · ") : "Cavia, Sanctum Anatomica"; }, detail:d => archDetail(archFor(d, "deep")) },
+  { id:"temporal", group:"week", def:true, title:"Temporal Archimedea", art:() => '<span class="wk-gem temporal"></span>',
+    sub:d => { const a = archFor(d, "temporal"); return a ? (a.missions || []).map(m => m.missionType).join(" · ") : "Höllvania"; }, detail:d => archDetail(archFor(d, "temporal")) },
+  { id:"descendia", group:"week", def:true, title:"Descendia", art:() => '<span class="wk-gem desc"></span>',
+    sub:d => d.descendia && (d.descendia.challenges || []).length ? `${d.descendia.challenges.length} floors this week` : "Weekly descent",
+    detail:d => d.descendia && (d.descendia.challenges || []).length ? `<ul class="wk-list">${d.descendia.challenges.map(c => `<li><b>${esc(c.index != null ? c.index + ". " : "")}${esc(c.type || c.level || "")}</b> <span>${esc([c.challenge, c.type && c.level ? c.level : ""].filter(Boolean).join(" · "))}</span></li>`).join("")}</ul>` : "" },
+  { id:"circuit", group:"week", def:true, title:"The Circuit", art:() => '<span class="wk-gem circ"></span>',
+    sub:d => { const c = choicesFor(d, "normal"); return c.length ? c.join(", ") : "Warframe rewards in Duviri"; } },
+  { id:"spcircuit", group:"week", def:true, title:"Steel Path Circuit", art:() => '<span class="wk-gem spc"></span>',
+    sub:d => { const c = choicesFor(d, "hard"); return c.length ? c.join(", ") : "Incarnon Genesis rewards"; } },
+  { id:"netracells", group:"week", def:true, max:5, unit:"runs", title:"Netracells", art:() => '<span class="wk-gem net"></span>',
+    sub:() => "Search Pulses from Tagfer, Sanctum Anatomica" },
+  { id:"kahl", group:"week", def:true, title:"Kahl's Garrison", art:() => '<span class="wk-gem kahl"></span>', sub:() => "Weekly mission at the Drifter's Camp" },
+  { id:"teshin", group:"week", def:true, title:"Steel Path Honors", art:() => img(ART.steel, "wk-art", ""),
+    sub:d => { const t = teshin(d.steelPath, Date.now()); return t ? `${t.cur.name} · ${t.cur.cost} Steel Essence` : "Teshin's weekly offering"; } },
+  { id:"nwweekly", group:"week", def:true, title:"Nightwave weeklies", art:() => img(ART.nora, "wk-art", ""), auto:true,
+    sub:d => { const l = ((d.nightwave && d.nightwave.activeChallenges) || []).filter(c => !c.isDaily); return l.length ? `${l.filter(c => nwDone[c.id]).length}/${l.length} done · ticked below` : "No season running"; } },
+  { id:"palladino", group:"week", title:"Palladino's Riven", art:() => '<span class="wk-gem riv"></span>', sub:() => "Iron Wake, Earth · Kuva" },
+  { id:"bird3", group:"week", title:"Bird 3's Archon Shard", art:() => '<span class="wk-gem shard"></span>', sub:() => "Cavia standing, Sanctum Anatomica" },
+  { id:"yonta", group:"week", title:"Archimedean Yonta", art:() => '<span class="wk-gem net"></span>', sub:() => "Kuva for Voidplumes, Chrysalith" },
+  { id:"helminth", group:"week", title:"Helminth Invigorations", art:() => '<span class="wk-gem kahl"></span>', sub:() => "New invigoration offers in your Orbiter" },
+  { id:"ayatan", group:"week", title:"Ayatan Treasure Hunt", art:() => '<span class="wk-gem shard"></span>', sub:() => "Maroo's Bazaar, Mars" },
+  { id:"sortie", group:"day", def:true, title:"Sortie", art:d => factionImg(d.sortie && d.sortie.faction, "wk-art"),
+    sub:d => d.sortie ? `${d.sortie.boss} · ${(d.sortie.variants || []).map(v => v.missionType).join(", ")}` : "Daily sortie",
+    period:d => d.sortie && d.sortie.expiry ? "s" + rollForward(ts(d.sortie.expiry), DAY, Date.now()) : null },
+  { id:"incursions", group:"day", def:true, title:"Steel Path incursions", art:() => img(ART.steel, "wk-art", ""), sub:() => "Daily Steel Essence alerts" },
+  { id:"syndicate", group:"day", title:"Syndicate standing", art:() => '<span class="wk-gem circ"></span>', sub:() => "Daily standing cap" },
+  { id:"focus", group:"day", title:"Focus", art:() => '<span class="wk-gem temporal"></span>', sub:() => "Daily focus cap" },
+  { id:"acrithis", group:"day", title:"Acrithis", art:() => '<span class="wk-gem riv"></span>', sub:() => "Daily offering, Dormizone" },
+];
+let wkState = store.get("orbiter.weekly", {});
+let wkHidden = store.get("orbiter.weeklyHidden", null);
+if (!wkHidden) wkHidden = Object.fromEntries(WEEKLY_ITEMS.filter(i => !i.def).map(i => [i.id, 1]));
+const WK = { edit:false, open:{} };
+function wkPeriod(item, d, now){
+  if (item.period) { const p = item.period(d); if (p) return p; }
+  return item.group === "week" ? "w" + weekStart(now) : "d" + dayStart(now);
+}
+function wkCount(item, d, now){ const s = wkState[item.id]; return s && s.k === wkPeriod(item, d, now) ? s.n : 0; }
+function wkTap(id){
+  const item = WEEKLY_ITEMS.find(i => i.id === id); if (!item || item.auto) return;
+  const now = Date.now(), k = wkPeriod(item, S.data || {}, now), max = item.max || 1;
+  const n = wkCount(item, S.data || {}, now);
+  wkState[id] = { k, n:n >= max ? 0 : n + 1 };
+  store.set("orbiter.weekly", wkState); render();
+}
+function wkRow(item, d, now){
+  const max = item.max || 1;
+  const n = item.auto ? (((d.nightwave && d.nightwave.activeChallenges) || []).filter(c => !c.isDaily).every(c => nwDone[c.id]) && ((d.nightwave && d.nightwave.activeChallenges) || []).some(c => !c.isDaily) ? 1 : 0) : wkCount(item, d, now);
+  const done = n >= max;
+  const det = item.detail ? item.detail(d) : "";
+  const open = !!WK.open[item.id];
+  const mark = max > 1
+    ? `<span class="pips" aria-hidden="true">${Array.from({ length:max }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</span><span class="cnt mono">${n}/${max}</span>`
+    : `<span class="check">${CHECK}</span>`;
+  if (WK.edit) return `<div class="wk-row editing"><button class="wk-main" data-whide="${item.id}" aria-pressed="${!wkHidden[item.id]}">
+      <span class="eye${wkHidden[item.id] ? "" : " on"}" aria-hidden="true"></span><span class="wk-ic">${item.art ? item.art(d) : ""}</span>
+      <span class="main"><span class="t">${esc(item.title)}</span><span class="s">${wkHidden[item.id] ? "Hidden" : "Shown"}</span></span></button></div>`;
+  return `<div class="wk-row${done ? " done" : ""}">
+    <button class="wk-main" data-wk="${item.id}" aria-pressed="${done}" ${item.auto ? 'data-wauto="1"' : ""}>
+      <span class="wk-mark${max > 1 ? " multi" : ""}">${mark}</span><span class="wk-ic">${item.art ? item.art(d) : ""}</span>
+      <span class="main"><span class="t">${esc(item.title)}</span><span class="s">${esc(item.sub ? item.sub(d) : "")}</span></span>
+    </button>
+    ${det ? `<button class="wk-more" data-wexp="${item.id}" aria-expanded="${open}" aria-label="Details for ${esc(item.title)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg></button>` : ""}
+    ${det && open ? `<div class="wk-detail">${det}</div>` : ""}
+  </div>`;
+}
+function weeklyView(d, now){
+  const wEnd = weekStart(now) + WEEK, dEnd = dayStart(now) + DAY;
+  const items = WEEKLY_ITEMS.filter(i => WK.edit || !wkHidden[i.id]);
+  const vis = WEEKLY_ITEMS.filter(i => !wkHidden[i.id]);
+  const doneN = vis.filter(i => {
+    if (i.auto) return false;
+    return wkCount(i, d, now) >= (i.max || 1);
+  }).length;
+  const group = (g, label, end) => {
+    const list = items.filter(i => i.group === g);
+    if (!list.length) return "";
+    return `<section class="frame wk-sec"><div class="sec-h"><h2>${label}</h2><span class="meta">resets in ${cd(end)}</span></div>${list.map(i => wkRow(i, d, now)).join("")}</section>`;
+  };
+  return `<div class="view">${notice()}
+    <div class="card frame wk-head" data-cycle-end="${Math.min(wEnd, dEnd)}">
+      <div class="summary">
+        <div><span class="lbl">Weekly reset</span><b>${cd(wEnd)}</b><span class="when">${esc(when(wEnd))}</span></div>
+        <div><span class="lbl">Daily reset</span><b>${cd(dEnd)}</b><span class="when">${esc(when(dEnd))}</span></div>
+        <div><span class="lbl">Done</span><b class="mono">${doneN}/${vis.filter(i => !i.auto).length}</b></div>
+      </div>
+      <div class="wk-tools"><span class="fine">Tap to tick off. Ticks clear themselves at each reset.</span>
+        <button class="copy" data-act="wk-edit">${WK.edit ? "Done" : "Edit list"}</button></div>
+    </div>
+    ${group("week", "This week", wEnd)}
+    ${group("day", "Today", dEnd)}
+    ${WK.edit ? "" : VIEWS.nightwave(d, now)}
+  </div>`;
+}
 
 function render(){
   paintStatus();
@@ -966,7 +1172,7 @@ function installSection(){
 
 /* ================= motion ================= */
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)");
-const STAGGER = ".cycle,.reset,.fis,.card,.inv,.nw-row,.hit,.drop-group,.order";
+const STAGGER = ".cycle,.reset,.fis,.card,.inv,.nw-row,.wk-row,.hit,.drop-group,.order";
 function animateIn(root, dir, axis){
   if (REDUCED.matches || !root || !root.animate) return;
   const d = (dir || 1) * 22;
@@ -1346,6 +1552,7 @@ function openSettings(){
     <div class="field"><span class="lbl">Text size</span>
       <div class="seg">${SCALES.map(([v, l]) => `<button data-scale="${v}" aria-pressed="${prefs.scale === v}">${l}</button>`).join("")}</div></div>
     ${IN_APP ? `<div class="field"><span class="lbl">Updates</span>${updateSection()}</div>` : `<div class="field"><span class="lbl">Install</span>${installSection()}</div>`}
+    ${IN_APP ? `<div class="field"><span class="lbl">Home screen widgets</span><p class="fine">Long-press an empty spot on your home screen, choose <b>Widgets</b>, then <b>Orbiter Panel</b>. Each widget can show open-world cycles, one big cycle, resets or fissures, with its own transparency and text size. Long-press a widget later to change its settings.</p></div>` : ""}
     <div class="field"><span class="lbl">Trading platform</span>
       <div class="seg">${PLATFORMS.map(([id, l]) => `<button data-plat="${id}" aria-pressed="${prefs.platform === id}">${l}</button>`).join("")}</div>
       <p class="fine">Used for warframe.market listings. Timers, fissures and missions are the same on every platform since crossplay.</p></div>
@@ -1393,6 +1600,11 @@ document.addEventListener("click", e => {
     s.has(t) ? s.delete(t) : s.add(t); prefs.fisTiers = [...s]; savePrefs(); render(); return;
   }
   if ("ffast" in b.dataset) { prefs.fisFast = !prefs.fisFast; savePrefs(); render(); return; }
+  if (b.dataset.wauto) { const el = $("#nightwave"); if (el) el.scrollIntoView({ behavior:REDUCED.matches ? "auto" : "smooth", block:"start" }); return; }
+  if (b.dataset.wk) { wkTap(b.dataset.wk); return; }
+  if (b.dataset.wexp) { WK.open[b.dataset.wexp] = !WK.open[b.dataset.wexp]; render(); return; }
+  if (b.dataset.whide) { const id = b.dataset.whide; if (wkHidden[id]) delete wkHidden[id]; else wkHidden[id] = 1; store.set("orbiter.weeklyHidden", wkHidden); render(); return; }
+  if (b.dataset.act === "wk-edit") { WK.edit = !WK.edit; render(); return; }
   if (b.dataset.nw) {
     const id = b.dataset.nw;
     if (nwDone[id]) delete nwDone[id]; else nwDone[id] = Date.now();
@@ -1410,6 +1622,10 @@ let skyT = 0; window.addEventListener("resize", () => { clearTimeout(skyT); skyT
 
 /* ================= boot ================= */
 if (document.fullscreenEnabled && !isInstalled()) $("#fs-btn").hidden = false;
+if (prefs.tab === "nightwave") prefs.tab = "weekly";
+// A home screen widget can ask for a tab, at launch or while the app is open.
+try { const t = BRIDGE && BRIDGE.startTab && BRIDGE.startTab(); if (t && TABS.some(x => x[0] === t)) prefs.tab = t; } catch (e) {}
+window.__orbiterOpenTab = id => { if (!TABS.some(x => x[0] === id)) return; if (!$("#sheet").hidden) closeSettings(); switchTab(id); };
 if (!TABS.some(t => t[0] === prefs.tab)) prefs.tab = "world";
 paintSky();
 paintTabs();
@@ -1418,6 +1634,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => plac
 showPanes();
 if (prefs.tab === "search") openSearch();
 render();
+pushWidgetSnapshot(); // widgets get the cached data straight away, before the first refresh
 animateIn(prefs.tab === "search" ? $("#spane") : $("#pane"), 1);
 // quietly look for a newer APK at most twice a day
 if (BRIDGE && Date.now() - (store.get("orbiter.updCheck", 0) || 0) > 12 * HOUR) setTimeout(() => checkUpdates(true), 4000);

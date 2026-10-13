@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_bg"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_frame"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/place"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.14"
+            android:singleLine="true"
+            android:textStyle="bold"
+            android:textSize="10.5sp"
+            android:shadowColor="#CC000000"
+            android:shadowRadius="4"
+            android:shadowDy="1" />
+
+        <TextView
+            android:id="@+id/state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:singleLine="true"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:shadowColor="#CC000000"
+            android:shadowRadius="6"
+            android:shadowDy="1" />
+
+        <Chronometer
+            android:id="@+id/timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="#FFF2F6FA"
+            android:textSize="18sp"
+            android:shadowColor="#CC000000"
+            android:shadowRadius="4"
+            android:shadowDy="1" />
+
+        <TextView
+            android:id="@+id/timer_static"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="#FFF2F6FA"
+            android:textSize="18sp"
+            android:visibility="gone"
+            android:shadowColor="#CC000000"
+            android:shadowRadius="4"
+            android:shadowDy="1" />
+
+        <TextView
+            android:id="@+id/next"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:singleLine="true"
+            android:textColor="#FFB4C2CF"
+            android:textSize="11sp"
+            android:shadowColor="#CC000000"
+            android:shadowRadius="4"
+            android:shadowDy="1" />
+    </LinearLayout>
+</FrameLayout>
