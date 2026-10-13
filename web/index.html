@@ -593,29 +593,53 @@ function teshin(sp, now){
 const archonOf = boss => { const k = String(boss || "").toLowerCase(); return Object.keys(ARCHON).find(a => k.includes(a)); };
 
 /* ================= fetching ================= */
+// The official-feed parser (~860 KB) is only loaded the first time warframestat.us fails.
+let parserP = null;
+function loadParser(){
+  if (window.OrbiterParse) return Promise.resolve();
+  if (!parserP) parserP = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = "worldstate-parser.js"; s.async = true;
+    s.onload = () => window.OrbiterParse ? res() : rej(new Error("parser missing"));
+    s.onerror = () => { parserP = null; rej(Object.assign(new Error("parser"), { code:"parser didn't load" })); };
+    document.head.appendChild(s);
+  });
+  return parserP;
+}
 async function load(){
   if (S.loading) return;
   S.loading = true; S.error = null; paintStatus();
-  // Try the main address, then two equivalent ones (a different address shape skips any stale cache or redirect problem).
-  const p = encodeURIComponent(prefs.platform);
-  const urls = [apiUrl(prefs.platform), `https://api.warframestat.us/${p}?language=en&t=${Date.now()}`, `https://api.warframestat.us/${p}/`];
-  let reason = "";
-  for (let i = 0; i < urls.length && !S.fetchedOk; i++) {
-    if (i) await new Promise(r => setTimeout(r, 1200));
+  // 1) warframestat.us (community, already parsed)  2) Digital Extremes' official feed, parsed in the app  3) warframestat.us again.
+  // warframestat sends every platform to the PC world state now (crossplay), so the path is always /pc.
+  const sources = [
+    { kind:"wfs", url:"https://api.warframestat.us/pc?language=en" },
+    { kind:"de",  url:"https://api.warframe.com/cdn/worldState.php" },
+    { kind:"wfs", url:`https://api.warframestat.us/pc/?language=en&t=${Date.now()}` },
+  ];
+  let reason = "", firstReason = "";
+  for (let i = 0; i < sources.length && !S.fetchedOk; i++) {
+    const src = sources[i];
+    if (i === 2) await new Promise(r => setTimeout(r, 1200));
     const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 20000);
     try {
-      const r = await fetch(urls[i], { signal:ctrl.signal, cache:"no-store" });
+      const r = await fetch(src.url, { signal:ctrl.signal, cache:"no-store" });
       if (!r.ok) throw Object.assign(new Error("HTTP " + r.status), { code:"HTTP " + r.status });
       const text = await r.text();
       let j;
-      try { j = JSON.parse(text); } catch (e) { throw Object.assign(new Error("bad data"), { code:/^\s*</.test(text) ? "got a web page instead of data" : "unreadable data" }); }
-      if (!j || typeof j !== "object" || Array.isArray(j)) throw Object.assign(new Error("bad data"), { code:"unexpected data" });
-      S.data = slim(j); S.fetchedAt = Date.now(); S.fetchedOk = true; S.lastReason = "";
+      if (src.kind === "de") {
+        await loadParser();
+        try { j = await window.OrbiterParse(text); } catch (e) { throw Object.assign(new Error("parse"), { code:"official feed format changed" }); }
+      } else {
+        try { j = JSON.parse(text); } catch (e) { throw Object.assign(new Error("bad data"), { code:/^\s*</.test(text) ? "got a web page instead of data" : "unreadable data" }); }
+      }
+      if (!j || typeof j !== "object" || Array.isArray(j) || !j.timestamp) throw Object.assign(new Error("bad data"), { code:"unexpected data" });
+      S.data = slim(j); S.fetchedAt = Date.now(); S.fetchedOk = true; S.lastReason = ""; S.source = src.kind;
       store.set("orbiter.cache." + prefs.platform, { t:S.fetchedAt, data:S.data });
     } catch (e) {
       reason = e && e.name === "AbortError" ? "timed out" : (e && e.code) || "network error";
+      if (!firstReason) firstReason = reason;
     } finally { clearTimeout(to); }
   }
+  if (!S.fetchedOk && firstReason && firstReason !== reason) reason = firstReason;
   if (!S.fetchedOk) {
     S.lastReason = reason;
     S.error = navigator.onLine === false ? "No internet connection."
@@ -1322,12 +1346,12 @@ function openSettings(){
     <div class="field"><span class="lbl">Text size</span>
       <div class="seg">${SCALES.map(([v, l]) => `<button data-scale="${v}" aria-pressed="${prefs.scale === v}">${l}</button>`).join("")}</div></div>
     ${IN_APP ? `<div class="field"><span class="lbl">Updates</span>${updateSection()}</div>` : `<div class="field"><span class="lbl">Install</span>${installSection()}</div>`}
-    <div class="field"><span class="lbl">Platform world state</span>
+    <div class="field"><span class="lbl">Trading platform</span>
       <div class="seg">${PLATFORMS.map(([id, l]) => `<button data-plat="${id}" aria-pressed="${prefs.platform === id}">${l}</button>`).join("")}</div>
-      <p class="fine">Leave this on PC unless your fissures or sortie don't match what you see in game.</p></div>
+      <p class="fine">Used for warframe.market listings. Timers, fissures and missions are the same on every platform since crossplay.</p></div>
     <div class="field"><span class="lbl">Clock</span>
       <div class="seg">${[["auto","Device"],["12","12-hour"],["24","24-hour"]].map(([id, l]) => `<button data-clock="${id}" aria-pressed="${prefs.clock === id}">${l}</button>`).join("")}</div></div>
-    <p class="fine">Data from the community-run warframestat.us API, refreshed every 2 minutes. Game images are Digital Extremes' art, shown under the Warframe Content Policy. Not affiliated with Digital Extremes.</p>
+    <p class="fine">World data from the community-run warframestat.us API, refreshed every 2 minutes. If it's down, the app reads Digital Extremes' official feed directly${S.source === "de" ? " (doing that right now)" : ""}. Game images are Digital Extremes' art, shown under the Warframe Content Policy. Not affiliated with Digital Extremes.</p>
     <button class="btn" data-act="close">Done</button>
   </div>`;
   sh.hidden = false;

@@ -33,6 +33,7 @@ public class MainActivity extends Activity {
     private static final String APP_HOST = "appassets.androidplatform.net";
     private static final String DATA_HOST = "api.warframestat.us";
     private static final String MARKET_HOST = "api.warframe.market";
+    private static final String DE_HOST = "api.warframe.com"; // Digital Extremes' official world state feed
 
     private WebView web;
     private volatile String userAgent;
@@ -61,7 +62,7 @@ public class MainActivity extends Activity {
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
                 Uri u = req.getUrl();
                 String host = u.getHost();
-                if ("GET".equals(req.getMethod()) && (DATA_HOST.equals(host) || MARKET_HOST.equals(host))) {
+                if ("GET".equals(req.getMethod()) && (DATA_HOST.equals(host) || MARKET_HOST.equals(host) || DE_HOST.equals(host))) {
                     WebResourceResponse r = fetchData(u.toString(), MARKET_HOST.equals(host));
                     if (r != null) return r;
                 }

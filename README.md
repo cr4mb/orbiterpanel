@@ -60,12 +60,13 @@ Requires Android 8.0 or newer. Works on any Android phone or tablet, not only th
 
 | Part | What it is |
 | --- | --- |
-| `web/` | The app itself: one HTML page, an item-picture index and icons. It is bundled into the APK. |
+| `web/` | The app itself: one HTML page, an item index, the backup world-state parser and icons. It is bundled into the APK. |
 | `app/` | A small Android wrapper: a full-screen WebView that serves `web/` from inside the APK, fetches live data natively and handles updates. |
 | `.github/workflows/build-apk.yml` | Builds a signed APK on every push to `main` and publishes it to Releases as `build-N`. |
 
 **Data sources**
 - World state and drop tables: [warframestat.us](https://warframestat.us), a community API run by WFCD
+- Backup world state: Digital Extremes' official feed (`api.warframe.com/cdn/worldState.php`), read directly when warframestat.us is down and parsed in the app with WFCD's [warframe-worldstate-parser](https://github.com/WFCD/warframe-worldstate-parser) (MIT License, bundled as `web/worldstate-parser.js`)
 - Prices and orders: [warframe.market](https://warframe.market)
 - Item names, pictures and resource locations: the [@wfcd/items](https://github.com/WFCD/warframe-items) data package; pictures load from cdn.warframestat.us
 
