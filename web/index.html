@@ -277,6 +277,46 @@ img:not(.broken) + .gem{display:none}
 .steps{margin:0;padding-left:1.2rem;font-size:.86rem;color:var(--muted);display:flex;flex-direction:column;gap:.2rem}
 .steps b{color:var(--text)}
 
+/* ---------- events ---------- */
+.ev-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+@container pane (max-width: 21rem){ .ev-grid{grid-template-columns:1fr} }
+@container pane (min-width: 46rem){ .ev-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.ev-card{position:relative;overflow:hidden;isolation:isolate;aspect-ratio:16/11;max-width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:.15rem;padding:.55rem .65rem .6rem;text-align:left;border:1px solid var(--edge);background:linear-gradient(160deg,var(--c1),var(--c2));transition:transform .18s ease,border-color .2s ease}
+.ev-card:active{transform:scale(.97)}
+.ev-card .art{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
+.ev-card::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(3,6,11,.92) 10%,rgba(3,6,11,.35) 55%,rgba(3,6,11,.05))}
+.ev-card::after{content:"";position:absolute;top:0;left:0;width:.8rem;height:.8rem;border-top:1px solid var(--tick);border-left:1px solid var(--tick)}
+.ev-card .badge{position:absolute;top:.5rem;right:.55rem;font-family:var(--f-head);font-weight:700;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.08rem .4rem;border:1px solid currentColor;background:rgba(3,6,11,.55)}
+.ev-card .badge.live{color:var(--ok)}
+.ev-card .badge.off{color:var(--muted)}
+.ev-card .nm{font-family:var(--f-head);font-weight:700;font-size:1.12rem;line-height:1.05;text-shadow:0 1px 4px #000;text-wrap:balance}
+.ev-card .wh{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-card .cd{font-size:.86rem;color:var(--text)}
+.ev-card .meter{height:3px;background:rgba(255,255,255,.12);margin-top:.15rem}
+.ev-card .meter i{display:block;height:100%;background:var(--ac);box-shadow:0 0 .4rem var(--ac)}
+.ev-card.off{filter:saturate(.75)}
+.ev-card.off .nm{color:#cfd8e1}
+.ev-hero{position:relative;overflow:hidden;aspect-ratio:16/8;max-width:100%;max-height:52vh;border:1px solid var(--edge)}
+.ev-hero canvas{position:absolute;inset:0;width:100%;height:100%}
+.ev-hero .cap{position:absolute;left:0;right:0;bottom:0;padding:.7rem .8rem .65rem;background:linear-gradient(to top,rgba(3,6,11,.92),transparent);display:flex;flex-direction:column;gap:.1rem}
+.ev-hero .cap .nm{font-family:var(--f-head);font-weight:700;font-size:1.6rem;line-height:1.05;text-shadow:0 2px 8px #000;animation:evTitle .9s cubic-bezier(.2,.75,.25,1) both .25s}
+.ev-hero .cap .wh{font-size:.88rem;color:var(--muted);animation:evTitle .9s cubic-bezier(.2,.75,.25,1) both .45s}
+@keyframes evTitle{from{opacity:0;transform:translateY(12px);letter-spacing:.12em}to{opacity:1;transform:none}}
+.ev-prog{display:flex;flex-direction:column;gap:.35rem}
+.ev-prog .track{position:relative;height:.5rem;background:rgba(255,255,255,.08)}
+.ev-prog .track i{position:absolute;left:0;top:0;bottom:0;background:var(--ac);box-shadow:0 0 .6rem var(--ac)}
+.ev-prog .track b{position:absolute;top:-.25rem;width:.55rem;height:.55rem;margin-left:-.27rem;transform:rotate(45deg);border:1px solid var(--muted);background:var(--space)}
+.ev-prog .track b.hit{background:var(--ac);border-color:var(--ac)}
+.ms{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:.6rem;align-items:center;padding:.45rem .2rem;border-bottom:1px solid var(--edge)}
+.ms:last-child{border-bottom:0}
+.ms .goal{font-family:var(--f-num);font-size:.95rem;min-width:2.6rem;text-align:right;color:var(--muted)}
+.ms.got .goal{color:var(--ac)}
+.ms .t{font-family:var(--f-head);font-weight:700;font-size:1.02rem}
+.ms .main{display:flex;flex-direction:column;min-width:0}
+.ms .thumbs{display:flex;gap:.2rem}
+.ms .thumbs img,.ms .thumbs .ph{width:2.2rem;height:1.8rem;object-fit:contain}
+.ms.final{background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 14%,transparent),transparent)}
+
 /* ---------- weekly ---------- */
 .wk-head .summary b{font-size:1.2rem}
 .wk-head .when{font-size:.74rem;color:var(--muted)}
@@ -412,6 +452,7 @@ img:not(.broken) + .gem{display:none}
 <div class="toast" id="toast" hidden></div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-h"></div>
 
+<script src="event-fx.js"></script>
 <script>
 (() => {
 "use strict";
@@ -470,7 +511,8 @@ const ICONS = {
 };
 ICONS.search = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5.5 5.5"/><path d="M10.5 7.5v6M7.5 10.5h6" stroke-width="1.2"/></svg>';
 ICONS.weekly = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><rect x="4" y="5" width="16" height="15"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/><path d="m8.5 14.5 2.2 2.2 4.8-4.8"/></svg>';
-const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["weekly","Weekly"],["vendors","Vendors"],["search","Search"]];
+ICONS.events = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"><path d="M12 2.8l2.4 6.3 6.7.3-5.2 4.2 1.8 6.5L12 16.4l-5.7 3.7 1.8-6.5L2.9 9.4l6.7-.3z"/></svg>';
+const TABS = [["world","World"],["fissures","Fissures"],["missions","Missions"],["events","Events"],["weekly","Weekly"],["vendors","Vendors"],["search","Search"]];
 const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 8.5 6.5 12 13 4.5"/></svg>';
 
 /* ================= storage (best effort) ================= */
@@ -542,7 +584,8 @@ function rewardParts(r){
   if (!r) return [];
   const parts = [];
   (r.countedItems || []).forEach(c => parts.push({ name:c.type || c.key || "", text:(c.count > 1 ? c.count.toLocaleString() + "× " : "") + (c.type || c.key || "") }));
-  (r.items || []).forEach(x => { const n = typeof x === "string" ? x : (x && x.name) || ""; if (n) parts.push({ name:n, text:n }); });
+  const seen = new Set(parts.map(p => p.name.toLowerCase()));
+  (r.items || []).forEach(x => { const n = typeof x === "string" ? x : (x && x.name) || ""; if (n && !seen.has(n.toLowerCase())) { seen.add(n.toLowerCase()); parts.push({ name:n, text:n }); } });
   if (r.credits) parts.push({ name:"", text:Number(r.credits).toLocaleString() + " cr" });
   return parts;
 }
@@ -609,7 +652,10 @@ function slim(j){
     dailyDeals: (j.dailyDeals || []).map(d => pick(d, ["item","originalPrice","salePrice","discount","total","sold","expiry"])),
     alerts: (j.alerts || []).map(a => ({ id:a.id, expiry:a.expiry, type:a.mission && a.mission.type, node:a.mission && a.mission.node,
       faction:a.mission && a.mission.faction, reward:a.mission && a.mission.reward })),
-    events: (j.events || []).map(e => pick(e, ["id","description","node","expiry","tooltip"])),
+    events: (j.events || []).map(e => Object.assign(pick(e, ["id","description","node","activation","expiry","tooltip","tag","maximumScore","currentScore","health","isPersonal","isCommunity","faction","regionDrops","scoreLocTag"]), {
+      rewards:(e.rewards || []).map(r => pick(r, ["items","countedItems","credits"])),
+      interimSteps:(e.interimSteps || []).map(x => ({ goal:x.goal, reward:x.reward ? pick(x.reward, ["items","countedItems","credits"]) : null })),
+      jobs:(e.jobs || []).map(jb => pick(jb, ["type","rewardPool","standingStages","enemyLevels","expiry"])) })),
   };
 }
 
@@ -889,6 +935,7 @@ const VIEWS = {
   },
 
   weekly(d, now){ return weeklyView(d, now); },
+  events(d, now){ return eventsView(d, now); },
 
   nightwave(d, now){
     const nw = d.nightwave;
@@ -965,6 +1012,104 @@ const VIEWS = {
     return `<div class="view">${notice()}${parts.length ? `<div class="two">${parts.join("")}</div>` : `<p class="empty">No vendor data right now.</p>`}</div>`;
   },
 };
+
+/* ================= events ================= */
+const FX = window.EventFX || null;
+const EV = { open:null };
+const humanTag = tag => String(tag || "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/Event$/, "").trim();
+const unresolved = s => !s || /\b(Event Name|Short Event Desc|Event Desc|Event Score)\b/.test(s);
+function evInfo(e){
+  const key = FX ? FX.themeFor(e) : "void", th = FX ? FX.THEMES[key] : { name:"Event", colors:["#122436","#04080d","#e2bb64"], blurb:"" };
+  // The data service sometimes ships a new event before its names are translated ("Road To Tau Event Name"); fall back to the theme's name.
+  const name = !unresolved(e.description) ? e.description : key !== "void" ? th.name : humanTag(e.tag) || "Limited-time event";
+  const blurb = !unresolved(e.tooltip) && e.tooltip ? e.tooltip : th.blurb;
+  const max = Number(e.maximumScore) || 0, cur = Number(e.currentScore) || 0, hp = e.health != null ? Number(e.health) : null;
+  const pct = max > 0 ? clampN(cur / max * 100) : hp != null && hp > 0 ? clampN(hp) : null;
+  return { key, th, name, blurb, max, cur, pct };
+}
+const clampN = v => Math.max(0, Math.min(100, v));
+function evCard(id, info, opts){
+  const [c1, c2, ac] = info.th.colors;
+  return `<button class="ev-card frame${opts.off ? " off" : ""}" data-ev="${esc(id)}" style="--c1:${c1};--c2:${c2};--ac:${ac}">
+    <canvas class="art" data-fx="${info.key}" aria-hidden="true"></canvas>
+    <span class="badge ${opts.off ? "off" : "live"}">${opts.off ? "Not running" : "Live"}</span>
+    <span class="nm">${esc(info.name)}</span>
+    <span class="wh">${esc(opts.where || "")}</span>
+    ${opts.end ? cd(opts.end) : ""}
+    ${info.pct != null ? `<span class="meter"><i style="width:${info.pct.toFixed(1)}%"></i></span>` : ""}
+  </button>`;
+}
+function evMilestones(e, info){
+  const steps = (e.interimSteps || []).filter(x => x && x.goal != null).sort((a, b) => a.goal - b.goal);
+  const final = (e.rewards || []).find(r => rewardParts(r).length);
+  if (!steps.length && !final) return "";
+  const thumbs = r => rewardParts(r).filter(p => p.name).slice(0, 3).map(p => itemImg(p.name, "") || '<span class="ph"></span>').join("");
+  const row = (goal, r, isFinal) => `<div class="ms${info.max && info.cur >= goal ? " got" : ""}${isFinal ? " final" : ""}">
+      <span class="goal">${goal != null ? esc(goal) : "★"}</span><span class="thumbs">${thumbs(r)}</span>
+      <span class="main"><span class="t">${esc(rewardText(r) || "Reward")}</span>${isFinal ? '<span class="s" style="color:var(--ac)">Final reward</span>' : ""}</span></div>`;
+  return `<section class="card frame"><div class="sec-h"><h2>Rewards</h2><span class="meta">${info.max ? "by score" : ""}</span></div>
+    ${steps.map(x => row(x.goal, x.reward, false)).join("")}${final ? row(info.max || null, final, true) : ""}</section>`;
+}
+function evDetail(e, info, now, off){
+  const end = ts(e.expiry), start = ts(e.activation);
+  const steps = (e.interimSteps || []).filter(x => x && x.goal != null);
+  const prog = info.pct != null ? `<div class="ev-prog">
+      <div class="sec-h"><h2>Progress</h2><span class="meta mono">${info.max ? `${info.cur.toLocaleString()} / ${info.max.toLocaleString()}` : info.pct.toFixed(0) + "%"}</span></div>
+      <div class="track"><i style="width:${info.pct.toFixed(1)}%"></i>${info.max ? steps.map(x => `<b class="${info.cur >= x.goal ? "hit" : ""}" style="left:${clampN(x.goal / info.max * 100)}%"></b>`).join("") : ""}</div>
+      <p class="fine">${e.isCommunity ? "Shared progress across all players." : "Event progress from the game's public data. It may not match your own runs."}</p></div>` : "";
+  const drops = (e.regionDrops || []).filter(Boolean);
+  const jobs = (e.jobs || []).filter(j => j && j.type);
+  return `<button class="back" data-act="ev-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M15 5l-7 7 7 7"/></svg>Events</button>
+    <div class="ev-hero"><canvas id="ev-hero" aria-hidden="true"></canvas>
+      <div class="cap"><span class="nm">${esc(info.name)}</span><span class="wh">${esc(off ? info.th.where : (e.node || info.th.where || ""))}</span></div></div>
+    <section class="card frame" style="--ac:${info.th.colors[2]}">
+      <p class="tagline" style="color:var(--text)">${esc(info.blurb || "")}</p>
+      ${off ? `<p class="fine">Not running right now. When it comes back, it appears at the top of Events with its live progress and rewards.</p>`
+        : `<div class="summary"><div><span class="lbl">Ends in</span><b>${cd(end)}</b><span class="when" style="font-size:.74rem;color:var(--muted)">${esc(when(end))}</span></div>
+           ${Number.isFinite(start) ? `<div><span class="lbl">Started</span><b style="font-size:1rem">${esc(new Date(start).toLocaleDateString(undefined, { month:"short", day:"numeric" }))}</b></div>` : ""}
+           ${e.faction ? `<div><span class="lbl">Enemy</span><b style="font-size:1rem;display:flex;align-items:center;gap:.3rem">${factionImg(e.faction)}${esc(e.faction)}</b></div>` : ""}</div>${prog}`}
+    </section>
+    ${off ? "" : `<div style="--ac:${info.th.colors[2]}">${evMilestones(e, info)}</div>`}
+    ${drops.length && !off ? `<section class="card frame"><div class="sec-h"><h2>Pick up in missions</h2></div><div class="recents">${drops.map(x => `<span class="chip static">${esc(unresolved(x) ? info.name + " pickup" : x.replace(/ Event Pickup$/, " pickup"))}</span>`).join("")}</div></section>` : ""}
+    ${jobs.length && !off ? `<section class="card frame"><div class="sec-h"><h2>Event bounties</h2></div><ul class="rows">${jobs.map(j => `<li class="row row-2"><span class="idx"><span>◆</span></span>
+      <span class="main"><span class="t">${esc(j.type)}</span><span class="s">${esc((j.enemyLevels || []).length ? "Level " + j.enemyLevels.join("–") : "")}${(j.standingStages || []).length ? " · " + j.standingStages.reduce((a, b) => a + b, 0).toLocaleString() + " standing" : ""}</span>
+      <span class="s wrap" style="color:var(--gold)">${esc((j.rewardPool || []).slice(0, 6).join(", "))}</span></span></li>`).join("")}</ul></section>` : ""}`;
+}
+function eventsView(d, now){
+  needItems();
+  const live = (d.events || []).filter(e => ts(e.expiry) > now);
+  if (EV.open) {
+    let e = null, off = false;
+    if (EV.open.startsWith("lib:")) { e = { tag:EV.open.slice(4) }; off = true; }
+    else e = live.find(x => (x.id || x.tag) === EV.open);
+    if (e) {
+      const info = off ? (() => { const key = EV.open.slice(4), th = FX ? FX.THEMES[key] : null; return { key, th, name:th ? th.name : "Event", blurb:th ? th.blurb : "", pct:null, max:0, cur:0 }; })() : evInfo(e);
+      return `<div class="view">${evDetail(e, info, now, off)}</div>`;
+    }
+    EV.open = null;
+  }
+  const liveKeys = new Set();
+  const liveCards = live.map(e => { const info = evInfo(e); liveKeys.add(info.key);
+    return evCard(e.id || e.tag, info, { where:e.node || info.th.where, end:ts(e.expiry) }); }).join("");
+  const lib = FX ? Object.entries(FX.THEMES).filter(([k]) => k !== "void" && !liveKeys.has(k)) : [];
+  const libCards = lib.map(([k, th]) => evCard("lib:" + k, { key:k, th, name:th.name, pct:null }, { off:true, where:th.where })).join("");
+  return `<div class="view">${notice()}
+    <section><div class="sec-h" style="margin-bottom:.45rem"><h2>Happening now</h2><span class="meta">${live.length} active</span></div>
+      ${live.length ? `<div class="ev-grid">${liveCards}</div>` : `<p class="empty">No events are running right now.</p>`}</section>
+    ${libCards ? `<section><div class="sec-h" style="margin-bottom:.45rem"><h2>Returning events</h2><span class="meta">tap to preview</span></div>
+      <div class="ev-grid">${libCards}</div></section>` : ""}
+  </div>`;
+}
+function paintEventArt(){
+  if (!FX) return;
+  document.querySelectorAll("canvas[data-fx]").forEach(c => FX.still(c, c.dataset.fx));
+  if (prefs.tab === "events" && EV.open && document.getElementById("ev-hero")) {
+    if (!EV.playing || EV.playing !== EV.open || !FX.running()) {
+      const key = EV.open.startsWith("lib:") ? EV.open.slice(4) : evInfo(((S.data && S.data.events) || []).find(x => (x.id || x.tag) === EV.open) || {}).key;
+      EV.playing = EV.open; FX.play("ev-hero", key, REDUCED.matches);
+    }
+  } else if (EV.playing) { EV.playing = null; FX.stop(); }
+}
 
 /* ================= weekly checklist ================= */
 // Warframe's weekly reset is Monday 00:00 UTC; the daily reset is 00:00 UTC.
@@ -1102,6 +1247,7 @@ function render(){
   const top = pane.scrollTop;
   pane.innerHTML = S.data ? VIEWS[prefs.tab](S.data, now) : `<div class="view">${noData()}</div>`;
   pane.scrollTop = top;
+  paintEventArt();
 }
 
 /* broken images hide themselves; the designed fallback behind them stays */
@@ -1172,7 +1318,7 @@ function installSection(){
 
 /* ================= motion ================= */
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)");
-const STAGGER = ".cycle,.reset,.fis,.card,.inv,.nw-row,.wk-row,.hit,.drop-group,.order";
+const STAGGER = ".cycle,.reset,.fis,.card,.inv,.nw-row,.wk-row,.hit,.drop-group,.order,.ev-card";
 function animateIn(root, dir, axis){
   if (REDUCED.matches || !root || !root.animate) return;
   const d = (dir || 1) * 22;
@@ -1600,6 +1746,8 @@ document.addEventListener("click", e => {
     s.has(t) ? s.delete(t) : s.add(t); prefs.fisTiers = [...s]; savePrefs(); render(); return;
   }
   if ("ffast" in b.dataset) { prefs.fisFast = !prefs.fisFast; savePrefs(); render(); return; }
+  if (b.dataset.ev) { EV.open = b.dataset.ev; EV.playing = null; $("#pane").scrollTop = 0; render(); animateIn($("#pane"), 1, "x"); return; }
+  if (b.dataset.act === "ev-back") { EV.open = null; render(); animateIn($("#pane"), -1, "x"); return; }
   if (b.dataset.wauto) { const el = $("#nightwave"); if (el) el.scrollIntoView({ behavior:REDUCED.matches ? "auto" : "smooth", block:"start" }); return; }
   if (b.dataset.wk) { wkTap(b.dataset.wk); return; }
   if (b.dataset.wexp) { WK.open[b.dataset.wexp] = !WK.open[b.dataset.wexp]; render(); return; }

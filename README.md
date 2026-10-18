@@ -32,6 +32,11 @@
 - Today's sortie with modifiers, this week's Archon Hunt and the shard it awards
 - Invasions with each side's rewards and progress, plus alerts and events
 
+**Events**
+- Every running event as a title card in a grid, with its countdown and progress
+- Tap a card for its own animation, then the details: progress with milestone markers, every reward tier with pictures, the final reward, event pickups and bounties
+- Animated themes for recurring events (Plague Star, Ghoul Purge, Star Days, Dog Days, Tennobaum, Lunar New Year, Fomorian and Razorback, Sentient anomalies, Kuva Floods, anniversaries and more), matched automatically when they return. Unknown events get a default Void theme
+
 **Weekly**
 - A weekly and daily checklist that clears itself at each reset: Archon Hunt, Icebind Cryobells, Deep and Temporal Archimedea, Descendia, both Circuits, Netracells, Kahl's Garrison, Steel Path Honors, sortie and more
 - Live details where the game publishes them: this week's Archimedea missions, deviations and risks, Circuit choices, Descendia floors and the Archon's shard
