@@ -35,7 +35,7 @@
 **Events**
 - Every running event as a title card in a grid, with its countdown and progress
 - Tap a card for its own animation, then the details: progress with milestone markers, every reward tier with pictures, the final reward, event pickups and bounties
-- Animated themes for recurring events (Plague Star, Ghoul Purge, Star Days, Dog Days, Tennobaum, Lunar New Year, Fomorian and Razorback, Sentient anomalies, Kuva Floods, anniversaries and more), matched automatically when they return. Unknown events get a default Void theme
+- Only events that are running are listed. Animated themes for recurring events (Plague Star, Ghoul Purge, Star Days, Dog Days, Tennobaum, Lunar New Year, Fomorian and Razorback, Sentient anomalies, Kuva Floods, anniversaries and more) are built in and used automatically when those events return. Unknown events get a default Void theme
 
 **Weekly**
 - A weekly and daily checklist that clears itself at each reset: Archon Hunt, Icebind Cryobells, Deep and Temporal Archimedea, Descendia, both Circuits, Netracells, Kahl's Garrison, Steel Path Honors, sortie and more

@@ -1088,16 +1088,11 @@ function eventsView(d, now){
     }
     EV.open = null;
   }
-  const liveKeys = new Set();
-  const liveCards = live.map(e => { const info = evInfo(e); liveKeys.add(info.key);
-    return evCard(e.id || e.tag, info, { where:e.node || info.th.where, end:ts(e.expiry) }); }).join("");
-  const lib = FX ? Object.entries(FX.THEMES).filter(([k]) => k !== "void" && !liveKeys.has(k)) : [];
-  const libCards = lib.map(([k, th]) => evCard("lib:" + k, { key:k, th, name:th.name, pct:null }, { off:true, where:th.where })).join("");
+  // Only running events are listed. Themes for recurring events stay built in and are matched when those events return.
+  const liveCards = live.map(e => evCard(e.id || e.tag, evInfo(e), { where:e.node || evInfo(e).th.where, end:ts(e.expiry) })).join("");
   return `<div class="view">${notice()}
     <section><div class="sec-h" style="margin-bottom:.45rem"><h2>Happening now</h2><span class="meta">${live.length} active</span></div>
-      ${live.length ? `<div class="ev-grid">${liveCards}</div>` : `<p class="empty">No events are running right now.</p>`}</section>
-    ${libCards ? `<section><div class="sec-h" style="margin-bottom:.45rem"><h2>Returning events</h2><span class="meta">tap to preview</span></div>
-      <div class="ev-grid">${libCards}</div></section>` : ""}
+      ${live.length ? `<div class="ev-grid">${liveCards}</div>` : `<p class="empty">No events are running right now. New ones show up here as soon as they start.</p>`}</section>
   </div>`;
 }
 function paintEventArt(){
@@ -1502,7 +1497,7 @@ function closeDetail(){
 function resultsHtml(){
   const q = SR.q.trim();
   if (!q) {
-    const rec = SR.recent.length ? `<section class="field"><span class="lbl">Recent</span><div class="recents">${SR.recent.map((r, i) =>
+    const rec = SR.recent.length ? `<section class="field"><div class="sec-h"><span class="lbl">Recent</span><button class="copy" data-act="recent-clear">Clear</button></div><div class="recents">${SR.recent.map((r, i) =>
       `<button class="chip" data-recent="${i}">${esc(r[0])}</button>`).join("")}</div></section>` : "";
     const state = SR.itemsState === "loading" && !SR.items ? `<p class="tagline">Loading the warframe.market item list…</p>`
       : SR.itemsState === "error" ? `<div class="banner"><span>Couldn't load the warframe.market item list. Drop searches still work.</span><button data-act="market-retry">Retry</button></div>` : "";
@@ -1632,6 +1627,7 @@ function searchClick(b){
   if (b.id === "q-clear") { $("#q").value = ""; SR.q = ""; SR.detail = null; paintSearch(); $("#q").focus(); return true; }
   if (b.dataset.open != null) { const h = SR.hits[+b.dataset.open]; if (h) openHit(h); return true; }
   if (b.dataset.drops) { openDetail(SR.q.trim(), "", ""); return true; }
+  if (b.dataset.act === "recent-clear") { SR.recent = []; store.set("orbiter.recent", SR.recent); paintSearch(); toast("Search history cleared"); return true; }
   if (b.dataset.recent != null) { const r = SR.recent[+b.dataset.recent]; if (r) openDetail(r[0], r[1], r[2]); return true; }
   if (b.dataset.act === "back") { closeDetail(); return true; }
   if (b.dataset.act === "detail-retry" && SR.detail) { const d = SR.detail; openDetail(d.name, d.slug, d.thumb); return true; }
