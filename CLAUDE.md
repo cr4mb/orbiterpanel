@@ -6,7 +6,7 @@ Unofficial Warframe second-screen companion for Android, designed for the AYN Th
 ## Layout
 
 - `web/` – the app itself. Bundled into the APK as assets and served from `https://appassets.androidplatform.net/assets/`.
-  - `index.html` – the whole app (HTML, CSS, JS in one file). Tabs: World, Fissures, Missions, Events, Weekly, Vendors, Search.
+  - `index.html` – the whole app (HTML, CSS, JS in one file). Tabs: World, Fissures, Missions (incl. Nightwave), Events, Vendors, Search.
   - `event-fx.js` – canvas animations per event theme (`window.EventFX`), matched by event tag/name.
   - `widget.html` – settings screen for home screen widgets (talks to `window.OrbiterWidget`).
   - `items.json` – item name → image index (`{v:2, c:[categories], i:[[name, image, catIdx, location?]]}`), built from `@wfcd/items`.

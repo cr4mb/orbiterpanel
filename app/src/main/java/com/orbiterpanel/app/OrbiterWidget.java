@@ -214,7 +214,7 @@ public class OrbiterWidget extends AppWidgetProvider {
     private static String tabFor(String type) {
         switch (type) {
             case "fissures": return "fissures";
-            case "resets": return "weekly";
+            case "resets": return "world";
             default: return "world";
         }
     }
