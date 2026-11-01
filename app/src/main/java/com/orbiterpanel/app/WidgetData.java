@@ -200,7 +200,7 @@ final class WidgetData {
             c.put("bg", 40);
             c.put("frame", true);
             c.put("size", "m");
-            c.put("accent", "gold");
+            c.put("accent", "void");
             c.put("title", true);
             return c;
         } catch (Exception e) {

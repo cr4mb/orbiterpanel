@@ -142,7 +142,7 @@ public class OrbiterWidget extends AppWidgetProvider {
 
     private static Style style(JSONObject cfg) {
         Style s = new Style();
-        switch (cfg.optString("accent", "gold")) {
+        switch (cfg.optString("accent", "void")) {
             case "void": s.accent = 0xFF82E4FF; break;
             case "white": s.accent = 0xFFFFFFFF; break;
             default: s.accent = 0xFFE2BB64;

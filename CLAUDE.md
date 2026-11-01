@@ -6,7 +6,7 @@ Unofficial Warframe second-screen companion for Android, designed for the AYN Th
 ## Layout
 
 - `web/` – the app itself. Bundled into the APK as assets and served from `https://appassets.androidplatform.net/assets/`.
-  - `index.html` – the whole app (HTML, CSS, JS in one file). Tabs: World, Fissures, Missions (incl. Nightwave), Events, Vendors, Search.
+  - `index.html` – the whole app (HTML, CSS, JS in one file). Tabs: World (cycles, resets, vendor tiles → sheet), Fissures, Missions (event strip → event detail, sortie, Archon, folded invasions, alerts, Nightwave), Search.
   - `event-fx.js` – canvas animations per event theme (`window.EventFX`), matched by event tag/name.
   - `widget.html` – settings screen for home screen widgets (talks to `window.OrbiterWidget`).
   - `items.json` – item name → image index (`{v:2, c:[categories], i:[[name, image, catIdx, location?]]}`), built from `@wfcd/items`.
@@ -30,7 +30,8 @@ Unofficial Warframe second-screen companion for Android, designed for the AYN Th
 ## Conventions
 
 - Keep the app a single `index.html` plus the few helper files; no build step for the web app.
-- Look: dark OLED, translucent navy panels, hairline frames with corner ticks, Rajdhani headings, Saira body, IBM Plex Mono numbers, gold `#e2bb64` accent, Void `#82e4ff`.
+- Look: Ordis / Cephalon theme – deep blue, translucent panels, hairline frames with corner ticks, icy cyan accent `#a6ecff` with glow, slight chromatic edges on headings, tick-ring backdrop. Gold `--warm` only for platinum, ducats and standing. Rajdhani headings, Saira body, IBM Plex Mono numbers. Don't draw Ordis himself.
+- Status messages are voiced by Ordis (`ORDIS` table in index.html): original lines, `<g>WORD</g>` marks his glitched outbursts.
 - Type scales with the screen (`html` font-size uses vw/vh); test layouts at 620×540 @2x, 516×450 @2.4x and 413×360 @3x (Thor bottom-screen viewports) – the World tab should fit with no scrolling.
 - Per-device state lives in `localStorage` under `orbiter.*` keys, always wrapped in try/catch.
 - Respect `prefers-reduced-motion`.

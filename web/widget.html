@@ -6,11 +6,11 @@
 <title>Widget settings</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Rajdhani:wght@600;700&family=Saira+Semi+Condensed:wght@400;500;600&display=swap">
 <style>
-/* Same look as the app: navy panels, hairline frames, gold accents. Committed dark. */
+/* Same look as the app: Cephalon blue panels, hairline frames, icy cyan accent. Committed dark. */
 :root{
   color-scheme:dark;
-  --space:#03050a; --panel:rgba(11,17,27,.86); --edge:rgba(150,190,220,.2); --text:#ecf2f7; --muted:#a2b3c2; --faint:#63738a;
-  --gold:#e2bb64; --gold-wash:rgba(226,187,100,.15); --void:#82e4ff;
+  --space:#020a14; --panel:rgba(11,17,27,.86); --edge:rgba(150,190,220,.2); --text:#ecf2f7; --muted:#a2b3c2; --faint:#63738a;
+  --gold:#a6ecff; --gold-wash:rgba(150,226,255,.14); --void:#82e4ff;
   --f-head:"Rajdhani","Saira Semi Condensed","Roboto Condensed",sans-serif;
   --f-body:"Saira Semi Condensed","Roboto Condensed",system-ui,sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,monospace;
@@ -124,7 +124,7 @@ const SIZE = { s:.86, m:1, l:1.2 };
 
 let cfg; try { cfg = JSON.parse(B ? B.config() : "null"); } catch (e) { cfg = null; }
 cfg = Object.assign({ type:"cycles", cycles:["cetusCycle","vallisCycle","cambionCycle","zarimanCycle"], single:"cetusCycle",
-  resets:["daily","weekly","sortie","archon","baro"], fisMode:"normal", fisTiers:[], fisFast:false, rows:4, bg:40, frame:true, size:"m", accent:"gold", title:true }, cfg || {});
+  resets:["daily","weekly","sortie","archon","baro"], fisMode:"normal", fisTiers:[], fisFast:false, rows:4, bg:40, frame:true, size:"m", accent:"void", title:true }, cfg || {});
 let snap = null; try { const s = B ? B.snapshot() : ""; snap = s ? JSON.parse(s) : null; } catch (e) {}
 
 function seg(el, opts, key){

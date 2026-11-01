@@ -22,26 +22,17 @@
 
 **World**
 - Open-world cycles for Cetus, Orb Vallis, Cambion Drift, the Zariman, Earth and Duviri, with countdowns and the next state's local time
-- Countdowns to the daily reset, sortie, Archon Hunt and Baro Ki'Teer
+- Countdowns to the daily reset, sortie, Archon Hunt, Baro Ki'Teer, Teshin's rotation and Darvo's deal; tap a vendor for its details (Baro's location and stock, Teshin's reward, Darvo's price)
 
 **Fissures**
 - Every active Void Fissure, split into Normal, Steel Path and Void Storms
 - Filter by relic tier, or show only fast missions (Capture, Extermination, Sabotage, Rescue)
 
 **Missions**
+- Running events as a strip of title cards at the top; tap one for its own animation, then progress with milestone markers, every reward tier with pictures, pickups and bounties. Animated themes for recurring events (Plague Star, Ghoul Purge, Star Days, Dog Days, Tennobaum, Lunar New Year, Fomorian and Razorback, Sentient anomalies, Kuva Floods, anniversaries and more) are built in for when they return
 - Today's sortie with modifiers, this week's Archon Hunt and the shard it awards
-- Invasions with each side's rewards and progress, plus alerts and events
-
-**Events**
-- Every running event as a title card in a grid, with its countdown and progress
-- Tap a card for its own animation, then the details: progress with milestone markers, every reward tier with pictures, the final reward, event pickups and bounties
-- Only events that are running are listed. Animated themes for recurring events (Plague Star, Ghoul Purge, Star Days, Dog Days, Tennobaum, Lunar New Year, Fomorian and Razorback, Sentient anomalies, Kuva Floods, anniversaries and more) are built in and used automatically when those events return. Unknown events get a default Void theme
-
-**Nightwave**
-- Nightwave challenges you can tick off, with the standing you have left (bottom of the Missions tab)
-
-**Vendors**
-- Baro Ki'Teer's location and stock, Teshin's Steel Path rotation and Darvo's daily deal
+- Invasions folded into one line that names any rewards worth chasing; tap to expand
+- Alerts, and Nightwave challenges you can tick off with the standing you have left
 
 **Search**
 - Every item in the game, tradable or not, with pictures as you type
