@@ -28,9 +28,15 @@ import java.net.URL;
  * Android's installer. Android only accepts it if it is signed with the same key as this app.
  */
 public class Updater {
-    static final String REPO = "cr4mb/companion";
+    static final String REPO = "cr4mb/orbiterpanel";
     private static final String RELEASES_API = "https://api.github.com/repos/" + REPO + "/releases/latest";
     private static final String DOWNLOAD_PREFIX = "https://github.com/" + REPO + "/releases/download/";
+    /** The repository's old name; GitHub still redirects it, so links from older builds keep working. */
+    private static final String OLD_DOWNLOAD_PREFIX = "https://github.com/cr4mb/companion/releases/download/";
+
+    private static boolean ourDownload(String url) {
+        return url != null && (url.startsWith(DOWNLOAD_PREFIX) || url.startsWith(OLD_DOWNLOAD_PREFIX));
+    }
 
     private final Activity activity;
     private final WebView web;
@@ -84,7 +90,7 @@ public class Updater {
                 c.setRequestProperty("Accept", "application/vnd.github+json");
                 int code = c.getResponseCode();
                 if (code == 404) {
-                    send(json("error", "msg", "No releases found. If the GitHub repository is private, make it public so the app can see new builds."));
+                    send(json("error", "msg", "Can't see the app's releases. The GitHub repository (" + REPO + ") has to be public for the app to find new builds."));
                     return;
                 }
                 if (code != 200) {
@@ -110,7 +116,7 @@ public class Updater {
                 r.put("current", versionCode());
                 r.put("latest", latest);
                 r.put("url", apk);
-                if (latest > versionCode() && apk.startsWith(DOWNLOAD_PREFIX)) r.put("state", "available");
+                if (latest > versionCode() && ourDownload(apk)) r.put("state", "available");
                 else r.put("state", "latest");
                 send(r);
             } catch (Exception e) {
@@ -122,7 +128,7 @@ public class Updater {
     @JavascriptInterface
     public void installUpdate(String url) {
         if (busy) return;
-        if (url == null || !url.startsWith(DOWNLOAD_PREFIX)) {
+        if (!ourDownload(url)) {
             send(json("error", "msg", "That download link doesn't belong to this app's repository."));
             return;
         }

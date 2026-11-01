@@ -706,7 +706,7 @@ function pushWidgetSnapshot(){
     const t = x => { const n = ts(x); return Number.isFinite(n) ? n : 0; };
     const vt = d.voidTrader || {};
     app.saveWidgetSnapshot(JSON.stringify({
-      t:S.fetchedAt || now, cycles,
+      t:S.dataTime || S.fetchedAt || now, cycles,
       sortieEnd:t(d.sortie && d.sortie.expiry), archonEnd:t(d.archonHunt && d.archonHunt.expiry), archonBoss:(d.archonHunt && d.archonHunt.boss) || "",
       baroStart:t(vt.activation), baroEnd:t(vt.expiry), baroLoc:vt.location || "",
       fissures:(d.fissures || []).map(f => ({ tier:f.tier, n:f.tierNum || 9, type:f.missionType, node:f.node, enemy:f.enemy, end:t(f.expiry), storm:!!f.isStorm, hard:!!f.isHard })),
@@ -736,7 +736,21 @@ async function load(){
     { kind:"de",  url:"https://api.warframe.com/cdn/worldState.php" },
     { kind:"wfs", url:`https://api.warframestat.us/pc/?language=en&t=${Date.now()}` },
   ];
-  let reason = "", firstReason = "";
+  let reason = "", firstReason = "", staleCopy = null;
+  // warframestat.us keeps answering with its last good copy when it can't reach Digital Extremes.
+  // Treat a copy as stale if it's more than 15 minutes old or has no fissure still running, and try the next source.
+  const freshness = j => {
+    const age = Date.now() - ts(j.timestamp), now = Date.now();
+    if (!(age < 15 * MIN)) return "stale data";
+    if (!(j.fissures || []).some(f => ts(f.expiry) > now)) return "no live fissures";
+    return "";
+  };
+  const accept = (j, kind) => {
+    S.data = slim(j); S.fetchedAt = Date.now(); S.fetchedOk = true; S.lastReason = ""; S.source = kind;
+    S.dataTime = ts(j.timestamp) || Date.now();
+    store.set("orbiter.cache." + prefs.platform, { t:S.fetchedAt, data:S.data });
+    pushWidgetSnapshot();
+  };
   for (let i = 0; i < sources.length && !S.fetchedOk; i++) {
     const src = sources[i];
     if (i === 2) await new Promise(r => setTimeout(r, 1200));
@@ -753,15 +767,21 @@ async function load(){
         try { j = JSON.parse(text); } catch (e) { throw Object.assign(new Error("bad data"), { code:/^\s*</.test(text) ? "got a web page instead of data" : "unreadable data" }); }
       }
       if (!j || typeof j !== "object" || Array.isArray(j) || !j.timestamp) throw Object.assign(new Error("bad data"), { code:"unexpected data" });
-      S.data = slim(j); S.fetchedAt = Date.now(); S.fetchedOk = true; S.lastReason = ""; S.source = src.kind;
-      store.set("orbiter.cache." + prefs.platform, { t:S.fetchedAt, data:S.data });
-      pushWidgetSnapshot();
+      const stale = freshness(j);
+      if (stale) {
+        if (!staleCopy || ts(j.timestamp) > ts(staleCopy.j.timestamp)) staleCopy = { j, kind:src.kind };
+        throw Object.assign(new Error("stale"), { code:stale });
+      }
+      accept(j, src.kind);
     } catch (e) {
       reason = e && e.name === "AbortError" ? "timed out" : (e && e.code) || "network error";
       if (!firstReason) firstReason = reason;
     } finally { clearTimeout(to); }
   }
   if (!S.fetchedOk && firstReason && firstReason !== reason) reason = firstReason;
+  // Every source was stale or down: an old copy still beats nothing, but say so.
+  let staleNote = "";
+  if (!S.fetchedOk && staleCopy) { accept(staleCopy.j, staleCopy.kind); staleNote = `The data services are behind right now. Showing world data from ${when(S.dataTime)}; fissures may be missing.`; }
   if (!S.fetchedOk) {
     S.lastReason = reason;
     S.error = navigator.onLine === false ? "No internet connection."
@@ -769,7 +789,8 @@ async function load(){
       : `Couldn't reach the Warframe data service (${reason}).`;
   }
   S.fetchedOk = false; S.loading = false;
-  schedule(S.error ? 30e3 : REFRESH_MS);
+  S.staleNote = staleNote;
+  schedule(S.error || staleNote ? 30e3 : REFRESH_MS);
   render();
 }
 function schedule(ms){ clearTimeout(S.timer); S.timer = setTimeout(() => { if (document.visibilityState === "visible") load(); else schedule(REFRESH_MS); }, ms); }
@@ -793,6 +814,7 @@ function paintStatus(){
   el.setAttribute("aria-label", S.fetchedAt ? `Updated ${new Date(S.fetchedAt).toLocaleTimeString()}. Tap to refresh.` : "Refresh data");
 }
 function notice(){
+  if (S.staleNote && !S.error) return `<div class="banner"><span>${esc(S.staleNote)}</span><button data-act="refresh">Retry</button></div>`;
   if (S.error && S.data) return `<div class="banner"><span>${esc(S.error)} Showing data from ${esc(when(S.fetchedAt))}.</span><button data-act="refresh">Retry</button></div>`;
   return "";
 }
@@ -868,7 +890,8 @@ const VIEWS = {
       </li>`;
     }).join("");
     return `<div class="toolbar"><div class="seg" role="group" aria-label="Fissure type">${seg}</div><div class="chips" role="group" aria-label="Relic tier">${chips}</div></div>
-      <div class="view">${notice()}${rows ? `<ul class="rows frame">${rows}</ul>` : `<p class="empty">No fissures match these filters right now.</p>`}</div>`;
+      <div class="view">${notice()}${rows ? `<ul class="rows frame">${rows}</ul>` : `<p class="empty">No fissures match these filters right now.</p>`}
+        ${S.dataTime ? `<p class="fine">Game data from ${esc(clock(S.dataTime))} · ${S.source === "de" ? "Digital Extremes' feed" : "warframestat.us"} · refreshes every 2 minutes</p>` : ""}</div>`;
   },
 
   missions(d, now){

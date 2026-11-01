@@ -226,7 +226,10 @@ final class WidgetData {
             int n;
             while ((n = in.read(buf)) > 0) b.write(buf, 0, n);
             in.close();
-            return fromWorldState(new JSONObject(b.toString("UTF-8")));
+            JSONObject snap = fromWorldState(new JSONObject(b.toString("UTF-8")));
+            // warframestat.us sometimes serves an old copy when it can't reach Digital Extremes; ignore those.
+            if (System.currentTimeMillis() - snap.optLong("t") > 15 * MIN) return null;
+            return snap;
         } catch (Exception e) {
             return null;
         } finally {
@@ -248,7 +251,8 @@ final class WidgetData {
     /** Same snapshot shape the web app sends through OrbiterApp.saveWidgetSnapshot. */
     static JSONObject fromWorldState(JSONObject ws) throws Exception {
         JSONObject snap = new JSONObject();
-        snap.put("t", System.currentTimeMillis());
+        long stamp = iso(ws.optString("timestamp"));
+        snap.put("t", stamp > 0 ? stamp : System.currentTimeMillis()); // when the game data was made, so newer data always wins
         JSONObject cycles = new JSONObject();
         for (Object[] d : CYCLES) {
             JSONObject c = ws.optJSONObject((String) d[0]);
