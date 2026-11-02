@@ -1,7 +1,7 @@
 // Keeps the app shell available offline. Live Warframe data is never cached here;
 // the page keeps its own copy of the last good world state. Game images use the browser's normal cache.
-const VERSION = "orbiter-v4";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./items.json", "./worldstate-parser.js", "./event-fx.js", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
+const VERSION = "orbiter-v5";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./items.json", "./worldstate-parser.js", "./event-fx.js", "./licenses.txt", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)));

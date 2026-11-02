@@ -12,6 +12,7 @@ Unofficial Warframe second-screen companion for Android, designed for the AYN Th
   - `items.json` – item name → image index (`{v:2, c:[categories], i:[[name, image, catIdx, location?]]}`), built from `@wfcd/items`.
   - `worldstate-parser.js` – bundled WFCD `warframe-worldstate-parser` (English only), used when warframestat.us is down.
   - `sw.js`, `manifest.webmanifest`, icons – for the installable web version.
+  - `licenses.txt` – copy of THIRD_PARTY_NOTICES.md shipped in the app (Settings → Open-source licenses). Regenerate both when bundled code changes.
 - `app/` – Android wrapper (Java, minSdk 26, targetSdk 34).
   - `MainActivity` – full-screen WebView; fetches api.warframestat.us, api.warframe.market and api.warframe.com natively (CORS-free); falls back to the WebView's own network on any non-2xx.
   - `Updater` – `window.OrbiterApp` bridge: version, check/download/install updates from GitHub Releases, widget snapshot, start tab.
@@ -39,3 +40,4 @@ Unofficial Warframe second-screen companion for Android, designed for the AYN Th
 - The Android project can't be compiled without the Android SDK; push to `main` and let GitHub Actions build it, then check the run.
 - The signing key `app/orbiter.keystore` is intentionally public (so builds install over each other). Forks should make their own.
 - Commit messages describe the change in plain language.
+- Code is MIT licensed (LICENSE); Digital Extremes' names, images, characters and data are excluded.

@@ -384,6 +384,7 @@ body::after{content:"";position:fixed;inset:0;z-index:30;pointer-events:none;bac
 .inv-toggle[aria-expanded="true"] svg{transform:rotate(180deg);color:var(--accent)}
 .inv-wrap .inv{border-top:1px solid var(--edge)}
 
+.lic{margin:0;max-height:55vh;overflow:auto;white-space:pre-wrap;word-break:break-word;font-family:var(--f-num);font-size:.68rem;line-height:1.4;color:var(--muted);background:rgba(var(--space-rgb),.6);border:1px solid var(--edge);padding:.6rem}
 /* ---------- theme picker ---------- */
 .ui-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.4rem,1fr));gap:.4rem}
 .ui-pick{display:flex;align-items:center;gap:.5rem;min-height:2.6rem;padding:0 .55rem;border:1px solid var(--edge);background:var(--panel);font-family:var(--f-head);font-weight:700;font-size:.86rem;letter-spacing:.04em;color:var(--muted);text-align:left}
@@ -1653,6 +1654,17 @@ function updateSection(){
   return body;
 }
 
+/* ================= open-source licenses ================= */
+function openLicenses(){
+  const sh = $("#sheet");
+  sh.innerHTML = `<div class="sheet-body frame"><h2 id="sheet-h">Open-source licenses</h2>
+    <p class="fine">Orbiter Panel is MIT licensed and includes the software below. Warframe names, images and game data belong to Digital Extremes Ltd.</p>
+    <pre class="lic" id="lic-text">Loading…</pre><button class="btn" data-act="back-settings">Back</button></div>`;
+  sh.hidden = false;
+  fetch("licenses.txt").then(r => r.ok ? r.text() : Promise.reject()).then(t => { const el = $("#lic-text"); if (el) el.textContent = t; })
+    .catch(() => { const el = $("#lic-text"); if (el) el.textContent = "Couldn't open the license file. It's also in THIRD_PARTY_NOTICES.md in the project's GitHub repository."; });
+}
+
 /* ================= vendor sheet ================= */
 function openVendor(which){
   if (!S.data) return;
@@ -1683,6 +1695,7 @@ function openSettings(){
     <div class="field"><span class="lbl">Clock</span>
       <div class="seg">${[["auto","Device"],["12","12-hour"],["24","24-hour"]].map(([id, l]) => `<button data-clock="${id}" aria-pressed="${prefs.clock === id}">${l}</button>`).join("")}</div></div>
     <p class="fine">World data from the community-run warframestat.us API, refreshed every 2 minutes. If it's down, the app reads Digital Extremes' official feed directly${S.source === "de" ? " (doing that right now)" : ""}. Game images are Digital Extremes' art, shown under the Warframe Content Policy. Not affiliated with Digital Extremes.</p>
+    <button class="copy" data-act="licenses" style="align-self:flex-start">Open-source licenses</button>
     <button class="btn" data-act="close">Done</button>
   </div>`;
   sh.hidden = false;
@@ -1705,6 +1718,8 @@ document.addEventListener("click", e => {
     return;
   }
   if (b.dataset.act === "close") { closeSettings(); return; }
+  if (b.dataset.act === "licenses") { openLicenses(); return; }
+  if (b.dataset.act === "back-settings") { openSettings(); return; }
   if (b.dataset.act === "upd-check") { checkUpdates(false); return; }
   if (b.dataset.act === "upd-install") { installUpdate(); return; }
   if (b.dataset.uiPick) { prefs.ui = b.dataset.uiPick; savePrefs(); applyUi(); paintSky(); openSettings(); return; }

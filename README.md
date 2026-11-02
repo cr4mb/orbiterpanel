@@ -6,7 +6,8 @@
 
 <p align="center">
   A Warframe second-screen companion for Android, built for the bottom screen of the AYN Thor.<br>
-  Live world timers, fissures, missions, vendors, warframe.market prices and drop chances, at a glance while you play.
+  Live world timers, fissures, missions, events, warframe.market prices and drop chances, at a glance while you play.<br>
+  Four tabs, eleven themes, and Ordis keeping you posted.
 </p>
 
 <p align="center">
@@ -42,15 +43,17 @@
 **Home screen widgets**
 - Open-world cycles, one big cycle, resets or fissures, each widget with its own settings
 - Adjustable transparency (fully clear to solid), hairline frame, text size and accent color
-- Countdowns tick live; the widgets refresh in the background about every 30 minutes
+- Countdowns tick live; the widgets refresh in the background about every 15 minutes
 
-**Themes**
+**Look and feel**
 - Eleven color themes inspired by the in-game interface themes: Ordis (default), Lotus, Dark Lotus, Stalker, Grineer, Corpus, Orokin, Fortuna, Nidus, Lunar Renewal and High Contrast
+- Status messages in the voice of Ordis, the Orbiter's Cephalon, glitches included
 
 **Made for the Thor's bottom screen**
 - Text and layout scale to fill the small square screen, with an adjustable text size
 - Full screen, no browser bars, and stays put when moved between screens
 - Checks this repository for new builds and updates itself from Settings
+- Keeps working when warframestat.us is down or behind by reading Digital Extremes' own feed
 
 ## Install
 
@@ -84,10 +87,15 @@ Push to `main` (or run the **Build APK** workflow by hand) and GitHub builds the
 
 Every build is signed with the key in `app/orbiter.keystore` so new builds install over old ones. That key only identifies this hobby app and is intentionally public. If you fork the project, generate your own key.
 
+## License
+
+The Orbiter Panel source code is released under the [MIT License](LICENSE). That covers this project's own code only: Warframe and all related names, images, characters (including Ordis) and game data belong to Digital Extremes Ltd. The app bundles some open-source software under its own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (also viewable in the app under Settings → Open-source licenses).
+
 ## Disclaimers
 
 - **Built with AI.** Most of the code, design and text in this repository was produced with an AI assistant (Anthropic's Claude) under the owner's direction. It has been tested, but it may still contain mistakes. Check anything important in game.
-- **Not affiliated with Digital Extremes.** Warframe and all related names, images and game data are trademarks and property of Digital Extremes Ltd. Game images are shown for non-commercial fan use under the [Warframe Content Policy](https://www.warframe.com/contentpolicy). No Warframe or Digital Extremes logos are used.
+- **Not affiliated with Digital Extremes.** Warframe and all related names, images, characters and game data are trademarks and property of Digital Extremes Ltd. Game images are shown for non-commercial fan use under the [Warframe Content Policy](https://www.warframe.com/contentpolicy). No Warframe or Digital Extremes logos are used.
+- **Ordis.** Ordis is a character from Warframe and belongs to Digital Extremes. The lines he says in this app are original fan-written text, not taken from the game.
 - **Third-party data.** Timers, drop chances and prices come from community services (warframestat.us, warframe.market) that this project doesn't control. They can be late, wrong or unavailable. Some cycle timers are estimated from fixed cycle lengths when the data lags; those show "≈".
 - **No warranty.** The app is provided as is, free and non-commercial, with no guarantee of accuracy or availability. You install and use it at your own risk. Trading decisions are your own.
 - **Sideloaded app.** It is distributed as an APK outside the Play Store. Only install builds from this repository's Releases page.
