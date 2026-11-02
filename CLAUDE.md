@@ -31,6 +31,7 @@ Unofficial Warframe second-screen companion for Android, designed for the AYN Th
 
 - Keep the app a single `index.html` plus the few helper files; no build step for the web app.
 - Look: Ordis / Cephalon theme – deep blue, translucent panels, hairline frames with corner ticks, icy cyan accent `#a6ecff` with glow, slight chromatic edges on headings, tick-ring backdrop. Gold `--warm` only for platinum, ducats and standing. Rajdhani headings, Saira body, IBM Plex Mono numbers. Don't draw Ordis himself.
+- UI themes (Settings → Theme): `UI_THEMES` + `:root[data-ui=…]` blocks in index.html. A theme sets only base colors (`--space-rgb`, `--base-rgb`, `--hi-rgb`, `--edge-rgb`, `--tick-rgb`, `--acc-rgb`, `--accent`, text tones, `--warm`, chroma pair, sky colors). Use `rgba(var(--…-rgb),a)` instead of literal colors so new UI follows the theme. Ordis is the default (no attribute).
 - Status messages are voiced by Ordis (`ORDIS` table in index.html): original lines, `<g>WORD</g>` marks his glitched outbursts.
 - Type scales with the screen (`html` font-size uses vw/vh); test layouts at 620×540 @2x, 516×450 @2.4x and 413×360 @3x (Thor bottom-screen viewports) – the World tab should fit with no scrolling.
 - Per-device state lives in `localStorage` under `orbiter.*` keys, always wrapped in try/catch.

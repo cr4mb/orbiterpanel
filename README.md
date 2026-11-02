@@ -44,6 +44,9 @@
 - Adjustable transparency (fully clear to solid), hairline frame, text size and accent color
 - Countdowns tick live; the widgets refresh in the background about every 30 minutes
 
+**Themes**
+- Eleven color themes inspired by the in-game interface themes: Ordis (default), Lotus, Dark Lotus, Stalker, Grineer, Corpus, Orokin, Fortuna, Nidus, Lunar Renewal and High Contrast
+
 **Made for the Thor's bottom screen**
 - Text and layout scale to fill the small square screen, with an adjustable text size
 - Full screen, no browser bars, and stays put when moved between screens
